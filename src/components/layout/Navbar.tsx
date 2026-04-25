@@ -55,6 +55,12 @@ export default function Navbar() {
           >
             TV Shows
           </button>
+          <button
+            onClick={() => router.push('/anime')}
+            className="text-zinc-300 hover:text-white transition text-sm"
+          >
+            Anime
+          </button>
         </div>
       </div>
 
