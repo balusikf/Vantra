@@ -1,5 +1,5 @@
 # VANTRA
-
+![image alt](https://github.com/balusikf/Vantra/blob/main/Screenshot%202026-05-05%20185215.png?raw=true)
 > **This project is currently on hold and may or may not be continued in the future. It was a personal learning experience and is not in a fully finished state.**
 
 VANTRA is a personal, private streaming platform built in the style of Netflix. Designed for personal use and a small group of friends. Entirely non-commercial and built **for educational purposes only**. No content is hosted or uploaded anywhere.
