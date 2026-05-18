@@ -94,4 +94,4 @@ Built with the assistance of **[Claude](https://claude.ai)** (by Anthropic) due 
 
 ---
 
-*Made with curiosity, frustration, and a lot of Stack Overflow.*
+*Made with curiosity and a lot of frustration.*
