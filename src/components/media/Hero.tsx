@@ -1,6 +1,7 @@
 'use client'
 
-import { TMDBMedia, TMDB_IMAGE_BASE } from '@/lib/tmdb'
+import type { TMDBMedia } from '@/lib/tmdb'
+import { TMDB_IMAGE_BASE } from '@/lib/media-presentation'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Play, Info } from 'lucide-react'

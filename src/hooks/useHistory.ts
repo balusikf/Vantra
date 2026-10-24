@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase'
+import { useCallback } from 'react'
 
 export function useHistory() {
   const supabase = createClient()
 
-  const addToHistory = async (
+  const addToHistory = useCallback(async (
     tmdbId: number,
     mediaType: string,
     title: string,
@@ -14,7 +15,7 @@ export function useHistory() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    await supabase.from('watch_history').upsert({
+    const { error } = await supabase.from('watch_history').upsert({
       user_id: user.id,
       tmdb_id: tmdbId,
       media_type: mediaType,
@@ -26,30 +27,8 @@ export function useHistory() {
     }, {
       onConflict: 'user_id,tmdb_id,media_type'
     })
-  }
+    if (error) throw error
+  }, [supabase])
 
-  const clearHistory = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    await supabase
-      .from('watch_history')
-      .delete()
-      .eq('user_id', user.id)
-  }
-
-  const getHistory = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return []
-
-    const { data } = await supabase
-      .from('watch_history')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('last_watched', { ascending: false })
-
-    return data || []
-  }
-
-  return { addToHistory, clearHistory, getHistory }
+  return { addToHistory }
 }

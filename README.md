@@ -1,97 +1,175 @@
 # VANTRA
-![image alt](https://github.com/balusikf/Vantra/blob/main/Screenshot%202026-05-05%20185215.png?raw=true)
-> **This project is currently on hold and may or may not be continued in the future. It was a personal learning experience and is not in a fully finished state.**
 
-VANTRA is a personal, private streaming platform built in the style of Netflix. Designed for personal use and a small group of friends. Entirely non-commercial and built **for educational purposes only**. No content is hosted or uploaded anywhere.
+A private space for movies, series and anime.
 
----
+VANTRA started as a personal learning project for a small group of friends. It has since grown into a complete visual overhaul with a personal library, manual episode tracking, recommendations and a small animated companion called Nook. It remains non-commercial and in active development.
 
-## Tech Stack
-
-| Technology | Purpose |
-|---|---|
-| **Next.js 16** (App Router) | Full-stack React framework |
-| **TypeScript** | Type-safe JavaScript |
-| **Tailwind CSS** | Styling |
-| **Framer Motion** | Animations |
-| **Supabase** | Database, authentication, file storage |
-| **TMDB API** | Movie and TV show metadata |
-| **AniList API** | Anime metadata (GraphQL) |
-| **Vercel** *(planned)* | Hosting and deployment |
-
----
-
-## How It Works
-
-VANTRA fetches metadata from TMDB and AniList and displays it in a Netflix-style interface. Streaming is handled through embed providers (MultiEmbed, VidLink, AutoEmbed), which accept a TMDB or MAL ID and return a video player inside an iframe. No video content is stored or uploaded.
-
-Access is restricted via an email whitelist in Supabase. Only pre-approved addresses can register. User data (watchlist, watch history, profile) is stored in a PostgreSQL database with Row Level Security enabled.
-
----
+![VANTRA homepage with cinematic spotlight and navigation](docs/screenshots/home.jpg)
 
 ## Features
 
-- Email whitelist authentication
-- Browse and search movies, TV shows, and anime
-- Detail pages with cast, trailer, photos, and episode lists
-- Video player with multi-provider switching
-- Watchlist and watch history (per user, persistent)
-- Profile page with avatar upload and display name
-![image alt](https://github.com/balusikf/Vantra/blob/main/Screenshot%202026-05-06%20172305.png?raw=true)
----
+- **Discover:** browse movies, series and anime, search by title, refine results with filters, and explore cast members and their other work. Catalogues load 18 titles at a time.
+- **Your library:** save titles, manage watching status, build collections, and keep private ratings and notes separate from official catalogue scores.
+- **Episode tracking:** mark individual episodes or a released season watched, undo a season's marks, and see watched counts in the season picker.
+- **Continue watching:** find the next unmarked episode or return to the last episode opened. Completed titles can surface newly released episodes according to their completion date and watched marks.
+- **For you:** six recommendations inspired by your highly rated, watching or completed titles. Already saved and previously opened titles are filtered out.
+- **Nook:** an animated companion with gaze tracking, pet interactions, tricks and genre reactions. Ask for a pick from your planned list or discover something new. Beanie, glasses and bow tie preferences are remembered per account in the current browser. Nook also presents community reviews on supported detail pages and stays off the playback page.
+- **Your account:** a shared avatar, profile settings and private library statistics. A separate owner-only panel automatically measures database and file-storage capacity.
+- **Consistent design:** dark surfaces, red accents, poster cards, title artwork, animated search and responsive layouts with reduced-motion support.
 
-## What Was Not Finished
+## A closer look
 
-- Custom video player (Vidstack) with direct `.m3u8` stream links
-- Subtitle support (CZ / EN) via OpenSubtitles
-- Consumet / Anify API integration
-- Video quality selection
-- "Continue Watching" section
-- PWA and TV Mode support
-- Vercel deployment
+### Personal recommendations
 
----
+Each suggestion explains which story inspired it. The scores shown on these cards are catalogue scores; your own ratings and notes stay in My Library.
 
-## What I Learned
+![For you recommendations with poster cards and their source title](docs/screenshots/for-you.jpg)
 
-- **Next.js App Router** - server vs client components, dynamic routing with `[id]`
-- **TypeScript** - typed props, API responses, and interfaces in a real project
-- **Supabase** - PostgreSQL setup, Row Level Security, auth flows, storage
-- **REST and GraphQL APIs** - TMDB REST API, AniList GraphQL, building proxy routes to avoid CORS
-- **Component architecture** - reusable React components and state management
-- **Tailwind CSS and Framer Motion** - responsive design and animations
-- **Git and GitHub** - version control, keeping secrets out of repositories
+### Title details
 
-### How Streaming Sites Actually Work
+Film, series and anime pages share the same visual language, with title artwork, trailers, cast, galleries and episode information where available.
 
-One of the most valuable things this project taught was understanding how informal streaming websites operate under the hood.
+![VANTRA series detail page](docs/screenshots/title-detail.jpg)
 
-**The metadata layer** is straightforward. Sites like TMDB and AniList provide free APIs with everything you need: titles, descriptions, posters, ratings, cast, trailers, and episode lists. Any streaming site you have ever used is almost certainly pulling from these same sources.
+<details>
+<summary>See the library, Nook and mobile layout</summary>
 
-**The actual video content** is a different story. There are a few approaches:
+### Library
 
-**Embed providers** are what VANTRA uses. Sites like MultiEmbed accept a TMDB ID in the URL and return a working video player inside an iframe. You never touch the actual video file. It is simple but limited - no control over the player UI, quality, or subtitles.
+Collections, watching status and private review controls. This view shows planned titles without personal review text.
 
-**Scraping and direct stream links** is how more advanced sites work. Tools like Consumet or Anify are open-source APIs that scrape video sources from streaming websites and extract direct `.m3u8` stream links. With those links you can use a custom player like Vidstack and have full control over quality, subtitles, and UI.
+![Library filtered to planned titles](docs/screenshots/library.jpg)
 
-**The scraping problem** is that it is inherently unstable. Providers change their structure, add obfuscation, or shut down. That is why public Consumet instances get taken down frequently. It is a constant cat-and-mouse game.
+### Meet Nook
 
-**HLS and `.m3u8` files** - video streams online are rarely a single file. HTTP Live Streaming (HLS) splits video into small chunks served via a `.m3u8` playlist file. The player reads the playlist and requests chunks one by one. This is how Netflix, YouTube, and every modern streaming service delivers video.
+A quiet place to pick the next story, with the same companion available from the navigation.
 
-**CORS and proxy routes** - browsers block direct requests to third-party APIs from frontend code. This is why VANTRA has its own `/api/anilist`, `/api/tmdb`, and `/api/stream` routes acting as server-side proxies. This is a pattern used by virtually every web app that talks to external APIs.
+![Nook with its interaction and discovery controls](docs/screenshots/nook.jpg)
 
----
+### On a smaller screen
 
-## Disclaimer
+<img src="docs/screenshots/mobile.jpg" alt="VANTRA movie catalogue on a mobile viewport" width="390" />
 
-VANTRA is a personal, non-commercial project built for educational purposes only. It does not host, upload, store, or distribute any copyrighted media. Not intended for public use or distribution.
+</details>
 
----
+## How it works
+
+TMDB provides movie and series metadata. AniList supplies anime metadata through GraphQL. VANTRA's server routes validate catalogue requests and keep the TMDB API key on the server.
+
+Supabase handles authentication, PostgreSQL data and avatar storage. Access is restricted to approved accounts through an email whitelist. Row Level Security limits profiles, saved titles, history, reviews, collections and watched marks to their owner.
+
+Playback comes from external providers embedded in iframes. VANTRA does not host or upload video files. The surrounding source picker and navigation belong to VANTRA; the video controls, subtitle options and quality choices depend on the selected provider.
+
+## Playback sources and advertising
+
+Playback availability varies by title, episode, region and time. Some providers offer broader availability while also displaying advertisements or opening popups. The source picker uses an `ADS` badge to flag some advertising-supported sources. Other sources may also serve ads.
+
+An updated browser and a reputable content blocker are recommended:
+
+- **Firefox and Zen:** [uBlock Origin from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/). Zen supports Firefox extensions.
+- **Chrome and Edge:** [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home), using the official store links listed by the project.
+
+A blocker reduces unwanted ads and popups but does not guarantee safety. VANTRA does not control third-party advertising. Avoid entering credentials, installing software or granting permissions in provider and advertisement prompts. VANTRA's iframe permission restrictions are an additional layer, not a built-in ad blocker.
+
+## Tech stack
+
+| Technology | Role |
+|---|---|
+| Next.js 16 and React 19 | App Router, server routes and interface |
+| TypeScript | Application types and request validation |
+| CSS Modules and Tailwind CSS 4 | Shared theme and responsive styling |
+| Framer Motion | Interface transitions and animations |
+| Supabase | Authentication, PostgreSQL, RLS and avatar storage |
+| TMDB | Movie, series, artwork and people data |
+| AniList | Anime metadata and community recommendations |
+
+## Run locally
+
+Use Node.js 24 and npm. The test suite uses Node's native TypeScript support.
+
+```sh
+git clone https://github.com/balusikf/Vantra.git
+cd Vantra
+npm ci
+cp .env.example .env.local
+```
+
+Fill in `.env.local`:
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public publishable key or legacy anon key |
+| `TMDB_API_KEY` | Server-side TMDB API key |
+| `VANTRA_OWNER_USER_ID` | Optional server-only UUID for the capacity panel; must match its database authorization |
+
+Keep `.env.local` private. A Supabase service-role or secret key must never be placed in a `NEXT_PUBLIC_` variable.
+
+The app requires a prepared Supabase project with VANTRA's tables, RLS policies, functions, approved accounts and avatar bucket. The files in [docs/sql](docs/sql) record changes already applied to the existing project. They are deployment references, not a fresh-project installer. Review their notes before using them on another database.
+
+```sh
+npm run dev
+```
+
+Open [localhost:3000](http://localhost:3000) and sign in with an approved account. Restart the server after changing environment variables.
+
+For a local production build:
+
+```sh
+npm run build
+npm start
+```
+
+## Checks and project notes
+
+```sh
+npm test
+npm run lint
+npm run build
+```
+
+Public catalogue metadata uses bounded caches, shared in-flight requests and provider cooldowns. Personal data stays outside the shared catalogue cache. The recommendation shelf loads near the viewport, and its library exclusions are checked against the current account.
+
+Useful implementation notes:
+
+- [Personal recommendations and end-to-end checks](docs/FOR-YOU.md)
+- [Continue watching and its limits](docs/CONTINUE-WATCHING.md)
+- [Library tracking and collections](docs/LIBRARY-TRACKING.md)
+- [Nook and its appearance](docs/NOOK.md)
+- [Automatic owner capacity panel](docs/OWNER-USAGE-PANEL.md)
+- [Latest efficiency and security audit](docs/AUDIT-2026-10-24.md)
+- [Code and privacy review](docs/SECURITY-REVIEW-2026-10-24.md)
+- [Embedded-player security](docs/PLAYER-SECURITY.md)
+
+### Current limits
+
+Watch history records the last title or episode opened. It does not prove that an episode was finished. Continue watching uses manual marks and episode identity; reliable playback timestamps depend on the provider.
+
+Recommendations exclude exact catalogue identities. An equivalent work stored separately under TMDB and AniList is not automatically matched across both services. Recommendations and episode dates also cannot guarantee that a streaming source has the title available.
+
+The owner capacity panel shows current database and stored-file sizes. Monthly egress, active users and other billing totals remain in the Supabase dashboard.
+
+A fully custom direct-stream player, unified subtitle handling, PWA support, TV mode and automated deployment are still outside the current implementation.
+
+## What I learned
+
+This project has been a practical way to learn how a full-stack application fits together:
+
+- App Router navigation, server and client components, and dynamic routes.
+- PostgreSQL ownership rules, RLS, authentication and file storage.
+- REST and GraphQL integrations, caching, outages and request validation.
+- Reusable components, responsive layouts and animation performance.
+- The limits of embedding a player from another origin.
+- Version control and keeping credentials out of the repository.
+
+The most useful lesson has been that the interface is only one part of the project. Reliable data, clear state, access rules and honest handling of external services matter just as much.
 
 ## Credits
 
-Built with the assistance of **[Claude](https://claude.ai)** (by Anthropic) due to limited experience with TypeScript and full-stack development at the time. Claude helped with architecture, debugging, writing components, and explaining concepts throughout the process. Without that collaboration, this project would not have reached the state it is in.
+Originally built with assistance from [Claude](https://claude.ai). The current visual overhaul and subsequent features were developed with assistance from Codex, including implementation, debugging and verification.
 
----
+- Movie and series data and artwork: [TMDB](https://www.themoviedb.org/).
+- Anime data: [AniList](https://anilist.co/).
+- Nook is adapted from [bloub by Jérémy Perret](https://github.com/jeremy-prt/bloub). Its [MIT license](src/vendor/bloub/LICENSE) is retained with the vendored code.
 
-*Made with curiosity and a lot of frustration.*
+VANTRA is a personal, non-commercial learning project intended for private use. Video playback is supplied by external services.

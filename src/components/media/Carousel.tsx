@@ -1,6 +1,6 @@
 'use client'
 
-import { TMDBMedia } from '@/lib/tmdb'
+import type { TMDBMedia } from '@/lib/tmdb'
 import MediaCard from './MediaCard'
 import { useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'

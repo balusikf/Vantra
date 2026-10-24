@@ -1,6 +1,6 @@
 'use client'
 
-import { AniListMedia } from '@/lib/anilist'
+import type { AniListMedia } from '@/lib/anilist'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 

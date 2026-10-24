@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-// Toto je klient pre použitie v prehliadači (komponenty)
+// Browser client is shared by the SDK; account authorization remains on the server/RLS.
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

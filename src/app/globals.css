@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
+  --background: #09090b;
   --foreground: #ededed;
   --accent: #E50914;
   --accent-hover: #f40612;
@@ -11,7 +11,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+html { scroll-behavior: smooth; scrollbar-gutter: stable; }
+html:has(main[data-player]) { scrollbar-gutter: auto; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 /* Scrollbar hide */
@@ -55,4 +61,12 @@ body {
 
 .slide-in {
   animation: slideIn 0.3s ease forwards;
+}
+
+/* The header stays outside the route boundary. Only incoming content moves. */
+@keyframes routeEnter { from { opacity: .8; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.route-enter { animation: routeEnter .22s cubic-bezier(.2,.8,.2,1); }
+@media (prefers-reduced-motion: reduce) {
+  .route-enter,.fade-in,.slide-in { animation: none; }
+  *,*::before,*::after { scroll-behavior: auto !important; }
 }

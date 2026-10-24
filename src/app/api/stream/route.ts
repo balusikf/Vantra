@@ -1,55 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-
-const PROVIDERS = [
-  {
-    name: 'MultiEmbed',
-    getMovieUrl: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
-    getTvUrl: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
-    getAnimeUrl: (malId: number, e: number) => `https://multiembed.mov/?video_id=${malId}&mal=1&e=${e}`,
-  },
-  {
-    name: 'VidLink',
-    getMovieUrl: (id: number) => `https://vidlink.pro/movie/${id}`,
-    getTvUrl: (id: number, s: number, e: number) => `https://vidlink.pro/tv/${id}/${s}/${e}`,
-    getAnimeUrl: (malId: number, e: number) => `https://vidlink.pro/anime/${malId}/1/${e}`,
-  },
-  {
-    name: 'AutoEmbed',
-    getMovieUrl: (id: number) => `https://autoembed.co/movie/tmdb/${id}`,
-    getTvUrl: (id: number, s: number, e: number) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}`,
-    getAnimeUrl: (malId: number, e: number) => `https://autoembed.co/anime/mal/${malId}-1-${e}`,
-  },
-]
+import { NextRequest } from 'next/server'
+import { apiJson, authorizeMediaApi } from '@/lib/media-api'
+import { validateMediaParams } from '@/lib/api-policy'
+import { isMediaType, parseInteger } from '@/lib/watch-metadata'
+import { getStreamProviders } from '@/lib/stream-providers'
 
 export async function GET(request: NextRequest) {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const { searchParams } = new URL(request.url)
+  try { validateMediaParams('stream', searchParams) }
+  catch (error) { return apiJson({ error: (error as Error).message }, 400) }
+  const denied = await authorizeMediaApi()
+  if (denied) return denied
   const tmdbId = searchParams.get('id')
   const type = searchParams.get('type')
   const season = searchParams.get('season')
   const episode = searchParams.get('episode')
+  const anilistId = searchParams.get('anilistId')
 
-  if (!tmdbId || !type) {
-    return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
+  const id = parseInteger(tmdbId)
+  const seasonNumber = parseInteger(season ?? '1', 0)
+  const episodeNumber = parseInteger(episode ?? '1')
+  const anilistNumber = anilistId === null ? undefined : parseInteger(anilistId)
+  if (anilistNumber === null || id === null || !isMediaType(type) || seasonNumber === null || episodeNumber === null) {
+    return apiJson({ error: 'Invalid media, season or episode' }, 400)
   }
 
-  const id = parseInt(tmdbId)
+  const urls = getStreamProviders(type, id, seasonNumber, episodeNumber, anilistNumber)
 
-  const urls = PROVIDERS.map(provider => ({
-    name: provider.name,
-    url: type === 'movie'
-      ? provider.getMovieUrl(id)
-      : type === 'anime'
-      ? provider.getAnimeUrl(id, parseInt(episode || '1'))
-      : provider.getTvUrl(id, parseInt(season || '1'), parseInt(episode || '1'))
-  }))
-
-  return NextResponse.json({ providers: urls, primary: urls[0] })
+  return apiJson({ providers: urls, primary: urls[0] })
 }

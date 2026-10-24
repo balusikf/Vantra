@@ -1,0 +1,75 @@
+{
+  "scope": "Client Supabase fetch starts only; production build; same signed-in account; hard-open /tv/105248 and switch season 1 to 2; no headers, parameters, tokens or response bodies recorded",
+  "open": {
+    "before": [
+      {
+        "message": "[VANTRA audit before] GET /auth/v1/user",
+        "timestamp": "2026-10-24T16:10:01.605Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /auth/v1/user",
+        "timestamp": "2026-10-24T16:10:01.765Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /auth/v1/user",
+        "timestamp": "2026-10-24T16:10:01.836Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/watchlist",
+        "timestamp": "2026-10-24T16:10:01.903Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/profiles",
+        "timestamp": "2026-10-24T16:10:01.914Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/watchlist",
+        "timestamp": "2026-10-24T16:10:01.987Z"
+      },
+      {
+        "message": "[VANTRA audit before] POST /rest/v1/rpc/episode_season_counts",
+        "timestamp": "2026-10-24T16:10:02.089Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/watched_episodes",
+        "timestamp": "2026-10-24T16:10:02.214Z"
+      }
+    ],
+    "after": [
+      {
+        "message": "[VANTRA audit after-final] GET /auth/v1/user",
+        "timestamp": "2026-10-24T16:39:51.199Z"
+      },
+      {
+        "message": "[VANTRA audit after-final] GET /rest/v1/profiles",
+        "timestamp": "2026-10-24T16:39:51.416Z"
+      },
+      {
+        "message": "[VANTRA audit after-final] POST /rest/v1/rpc/episode_tracking_state",
+        "timestamp": "2026-10-24T16:39:51.422Z"
+      },
+      {
+        "message": "[VANTRA audit after-final] GET /rest/v1/watchlist",
+        "timestamp": "2026-10-24T16:39:51.889Z"
+      }
+    ]
+  },
+  "seasonSwitch": {
+    "before": [
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/watchlist",
+        "timestamp": "2026-10-24T16:11:21.357Z"
+      },
+      {
+        "message": "[VANTRA audit before] GET /rest/v1/watched_episodes",
+        "timestamp": "2026-10-24T16:11:21.793Z"
+      }
+    ],
+    "after": [
+      {
+        "message": "[VANTRA audit after] POST /rest/v1/rpc/episode_tracking_state",
+        "timestamp": "2026-10-24T16:16:05.364Z"
+      }
+    ]
+  }
+}

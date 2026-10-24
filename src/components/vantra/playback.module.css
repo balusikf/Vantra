@@ -1,0 +1,36 @@
+.controls { position: absolute; z-index: 3; inset: 20px 24px auto; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; opacity: 1; transform: none; transition: opacity .25s ease,transform .25s ease; }
+.controls[data-visible=false] { opacity: 0; transform: translateY(-8px); }
+.controls button { cursor: pointer; }
+.controls > button,.sourceControls { pointer-events: auto; }
+.controls[data-visible=false] > button,.controls[data-visible=false] .sourceControls { pointer-events: none; }
+.controls:has(:focus-visible) { opacity: 1; transform: none; }
+.controls :focus-visible,.reveal:focus-visible { outline: 2px solid #ff2635; outline-offset: 4px; }
+.back,.sourceTrigger { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 44px; border: 1px solid #ffffff26; border-radius: 24px; background: #141416d9; backdrop-filter: blur(12px); color: #eeeef2; box-shadow: 0 4px 18px #0003; transition: background .2s,border-color .2s,transform .2s; }
+.back { padding: 0 18px; font-size: 12px; font-weight: 550; }
+.back > svg { transition: transform .2s; }
+.back:hover > svg { transform: translateX(-3px); }
+.back:hover,.sourceTrigger:hover { background: #242428ed; border-color: #ffffff55; }
+.sourceTrigger { width: 44px; }
+.sourceTrigger > svg { transition: transform .25s; }
+.sourceTrigger:hover > svg { transform: rotate(-12deg); }
+.sourceControls { position: relative; }
+.sourcePanel { position: absolute; top: 56px; right: 0; width: min(270px,calc(100vw - 32px)); max-height: calc(100svh - 100px); overflow-y: auto; overscroll-behavior: contain; padding: 18px; border: 1px solid #ffffff24; border-radius: 13px; background: #141416f5; backdrop-filter: blur(16px); color: #eeeef2; box-shadow: 0 16px 50px #0006; animation: panelEnter .18s ease-out; }
+.sourcePanel > p { color: #a2a2ab; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+.sourceList { display: grid; gap: 5px; }
+.sourceList > button { display: flex; justify-content: space-between; align-items: center; padding: 11px 12px; border-radius: 7px; font-size: 12px; text-align: left; transition: background .2s,color .2s; }
+.sourceIndicators { display: inline-flex; align-items: center; gap: 9px; flex-shrink: 0; margin-left: 12px; }
+.adsBadge { display: inline-flex; align-items: center; padding: 3px 5px; border: 1px solid #ffffff2b; border-radius: 4px; background: #ffffff08; color: #c5c5ce; font-size: 8px; font-weight: 700; line-height: 1; letter-spacing: .65px; }
+.sourceList > button:hover { background: #ffffff0b; }
+.sourceList > button[aria-pressed=true] { background: #e509141a; color: #ff5360; }
+.sourceList > span { font-size: 12px; color: #a2a2ab; padding: 12px; }
+.reload { display: flex; align-items: center; gap: 9px; width: 100%; margin-top: 12px; border-top: 1px solid #ffffff14; padding: 16px 12px 2px; color: #a2a2ab; font-size: 11px; transition: color .2s; }
+.reload:hover { color: #eeeef2; }
+.reload:disabled { opacity: .35; cursor: default; }
+.reveal { position: absolute; z-index: 2; top: 0; left: 0; right: 0; width: 100%; height: 18px; border: 0; background: transparent; }
+.reveal > span { opacity: 0; }
+.reveal:focus-visible { height: 30px; background: #141416; color: #eeeef2; font-size: 11px; outline-offset: -2px; }
+.reveal:focus-visible > span { opacity: 1; }
+@keyframes panelEnter { from { opacity: 0; transform: translateY(-5px); } }
+@media (max-width:560px) { .controls { inset: 16px 16px auto; } .back { padding: 0 14px; } }
+@media (pointer:coarse) { .reveal { height: 48px; } }
+@media (prefers-reduced-motion:reduce) { .controls,.controls * { animation: none !important; transition: none !important; } }
