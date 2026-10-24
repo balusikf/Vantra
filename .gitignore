@@ -17,6 +17,7 @@
 /.next/
 /.next-production/
 /out/
+/AGENTS.md
 
 # production
 /build
