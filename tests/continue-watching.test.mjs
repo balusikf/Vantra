@@ -1,12 +1,24 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parseContinueCandidates, resolveContinueTV, resolveContinueAnime, resolveContinueMovie } from '../src/lib/continue-watching.ts'
+import { continueBase, parseContinueCandidates, resolveContinueTV, resolveContinueAnime, resolveContinueMovie, selectContinueCards } from '../src/lib/continue-watching.ts'
 
 const now = Date.parse('2026-10-24T12:00:00Z')
 const candidate = (overrides = {}) => ({ saved_id: 'saved', id: 42, kind: 'tv', title: 'A story', poster: null, status: 'watching', completed_at: null, marked_count: 0, history_season: null, history_episode: null, seasons: [], ...overrides })
 const season = (n, count, date = '2026-01-01') => ({ season_number: n, episode_count: count, air_date: date })
 const episodes = (count, date = '2026-01-01') => ({ episodes: Array.from({ length: count }, (_, i) => ({ episode_number: i + 1, name: `Chapter ${i + 1}`, air_date: date })) })
 const mark = (season, count, first_unwatched, ranges) => ({ season, count, first_unwatched, ranges })
+
+test('the shelf excludes caught-up and future titles before taking the three most recent remaining stories', () => {
+  const cards = ['caught_up', 'upcoming', 'next', 'resume', 'movie', 'next'].map((state, index) => continueBase(candidate({ id: index + 1 }), state))
+  assert.deepEqual(selectContinueCards(cards).map(card => card.id), [3, 4, 5])
+  assert.equal(cards.length, 6)
+  assert.deepEqual(selectContinueCards(cards.slice(0, 2)), [])
+})
+
+test('metadata uncertainty is not treated as proof of completion', () => {
+  const unknown = continueBase(candidate())
+  assert.deepEqual(selectContinueCards([unknown]), [unknown])
+})
 
 test('next episode follows the first actual gap rather than the last opened or highest marked episode', async () => {
   const item = candidate({ marked_count: 2, history_season: 1, history_episode: 5, seasons: [mark(1, 2, 2, [[1, 1], [3, 3]])] })

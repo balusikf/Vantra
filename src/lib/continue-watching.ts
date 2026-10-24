@@ -6,10 +6,17 @@ export type ContinueCandidate = {
   history_season: number | null; history_episode: number | null; seasons: SeasonMarks[]
 }
 export type ContinueState = 'next' | 'resume' | 'movie' | 'caught_up' | 'upcoming' | 'unknown'
+export const CONTINUE_SHELF_LIMIT = 3
 export type ContinueCard = {
   id: number; kind: ContinueKind; title: string; poster: string | null; state: ContinueState
   detail: string; play: string | null; label: string; description: string; marked: number
   season?: number; episode?: number; episodeTitle?: string; date?: string | null
+}
+
+export function selectContinueCards(cards: ContinueCard[]): ContinueCard[] {
+  // Keep the bounded candidate pool larger than the shelf so waiting titles
+  // do not take a place from a story that can actually be continued.
+  return cards.filter(card => card.state !== 'caught_up' && card.state !== 'upcoming').slice(0, CONTINUE_SHELF_LIMIT)
 }
 export type ContinueEpisode = { episode_number: number; name?: string; air_date: string | null; overview?: string }
 export type ContinueSeason = { season_number: number; episode_count: number; air_date: string | null }

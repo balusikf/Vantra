@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createTokenBucket } from '@/lib/api-policy'
 import { apiJson } from '@/lib/media-api'
-import { parseContinueCandidates } from '@/lib/continue-watching'
+import { parseContinueCandidates, selectContinueCards } from '@/lib/continue-watching'
 import { boundedContinue } from '@/lib/continue-server'
 
 const quota = createTokenBucket(12, 60_000)
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const { data, error } = await client.rpc('continue_watching_candidates').abortSignal(request.signal)
     if (error) throw error
-    const cards = await boundedContinue(parseContinueCandidates(data), request.signal)
+    const cards = selectContinueCards(await boundedContinue(parseContinueCandidates(data), request.signal))
     return apiJson({ cards, checked_at: new Date().toISOString() })
   } catch { return apiJson({ error: 'Your recent stories could not be loaded. Please try again.' }, 503) }
 }

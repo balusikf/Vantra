@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, ArrowUpRight, Bookmark, CalendarClock, CheckCheck, Clapperboard, Play, RefreshCw, Sparkles } from 'lucide-react'
-import type { ContinueCard } from '@/lib/continue-watching'
+import { CONTINUE_SHELF_LIMIT, type ContinueCard } from '@/lib/continue-watching'
 import { nookPoster } from '@/lib/nook-selection'
 import { useAccount } from './AccountProvider'
 import s from './continue-watching.module.css'
@@ -47,7 +47,7 @@ function RecentStories({ userId }: { userId: string }) {
         const response = await fetch('/api/library/continue', { cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]) })
         const result = await response.json()
         if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Your recent stories could not be loaded.')
-        if (!Array.isArray(result.cards) || result.cards.length > 6) throw new Error('Your recent stories could not be read.')
+        if (!Array.isArray(result.cards) || result.cards.length > CONTINUE_SHELF_LIMIT) throw new Error('Your recent stories could not be read.')
         if (!controller.signal.aborted) setCards(result.cards)
       } catch (failure) { if (!controller.signal.aborted) setError(failure instanceof Error && failure.name !== 'TimeoutError' ? failure.message : 'Checking your episodes took too long. Please try again.') }
       finally { if (!controller.signal.aborted) setLoading(false) }

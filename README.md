@@ -11,7 +11,7 @@ VANTRA started as a personal learning project for a small group of friends. It h
 - **Discover:** browse movies, series and anime, search by title, refine results with filters, and explore cast members and their other work. Catalogues load 18 titles at a time.
 - **Your library:** save titles, manage watching status, build collections, and keep private ratings and notes separate from official catalogue scores.
 - **Episode tracking:** mark individual episodes or a released season watched, undo a season's marks, and see watched counts in the season picker.
-- **Continue watching:** find the next unmarked episode or return to the last episode opened. Completed titles can surface newly released episodes according to their completion date and watched marks.
+- **Continue watching:** up to three titles with the next unmarked episode or the last episode opened. Caught-up titles and future releases stay out of the shelf. Completed titles can return with newly released episodes according to their completion date and watched marks.
 - **For you:** six recommendations inspired by your highly rated, watching or completed titles. Already saved and previously opened titles are filtered out.
 - **Nook:** an animated companion with gaze tracking, pet interactions, tricks and genre reactions. Ask for a pick from your planned list or discover something new. Beanie, glasses and bow tie preferences are remembered per account in the current browser. Nook also presents community reviews on supported detail pages and stays off the playback page.
 - **Your account:** a shared avatar, profile settings and private library statistics. A separate owner-only panel automatically measures database and file-storage capacity.

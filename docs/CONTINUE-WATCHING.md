@@ -1,10 +1,13 @@
 # Home continuation shelf
 
-Continue watching sits before Trending on Home/Preview. Six recent titles are
-selected from the signed-in owner's saved active/completed stories, episode
+Continue watching sits before Trending on Home/Preview and displays at most three
+titles. Up to six recent candidates are checked from the signed-in owner's saved active/completed stories, episode
 marks and last 24 history records. Planned titles with no marks/history are not
 started automatically; paused/dropped titles and completed movies are excluded.
 Active/history stories precede completed titles, then sort by recent activity.
+Caught-up titles and titles awaiting a future release are filtered out before
+the three-card limit. They can return when a new eligible episode is released.
+Unknown metadata retains its honest detail-page fallback.
 
 The SECURITY INVOKER RPC has an empty search_path, no owner parameter, explicit
 auth.uid filters on every private table and authenticated-only execution. It
