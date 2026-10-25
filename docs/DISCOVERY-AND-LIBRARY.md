@@ -4,18 +4,37 @@
 
 The home and navbar pickers share the same task switch. From my list reads only
 the signed-in owner's Planned titles, preserving the existing small private
-in-memory pool. Discover is a separate catalogue picker with six moods and
-movie/series/anime type choices. Its result explicitly says FROM THE CATALOGUE.
+in-memory pool. Discover offers Mix it up, Trending now, New releases, Older picks
+and Less mainstream, with movie/series/anime choices and an explicit genre filter.
+Results show the release year and the category that supplied the suggestion.
 Switching tasks unmounts/aborts the outgoing picker and clears its speech token.
-Moods currently belong to Discover; Planned picks do not silently leave the list.
+The discovery controls do not affect From my list; Planned picks stay in the list.
 
-Discover loads a requested 18-item public page only after a click. Subsequent
-picks use that pool; exhaustion can advance to another page, bounded to ten
-pages per type/mood. Upcoming titles are excluded. Anything chooses one of the
-three catalogues per pick; this is discovery among catalogue suggestions, not a
-claim of uniform sampling over every title. AniList supplies genres directly;
-TMDB's optional detail enrichment reuses the public metadata cache. Late genre
-lookups cannot override a newer pat, trick, selection or task. No LLM is used.
+Discover reads a public catalogue page only after a click and reuses the existing
+hour-cached upstream requests, concurrency gates and five-minute client cache.
+Mixed picks use shuffle cycles across all four categories. Anything also cycles
+the compatible catalogues so one type cannot dominate by chance. Pages are sampled
+beyond page one, bounded to ten per type/category/genre, with at most one retry
+for a sparse or shorter catalogue. Fresh pool entries are reused before reading
+another page. Recently suggested catalogue identities are excluded across modes
+within the picker session; up to 360 identities, 32 pools and 64 shuffle bags are
+retained in memory. This is broader discovery, not uniform sampling of all media.
+
+Trending uses the actual TMDB weekly trending and AniList trending feeds. Recent
+uses first-release dates within the past year; older means at least ten years
+old. Less mainstream combines a minimum rating with a bounded number of votes
+(TMDB) or list users (AniList), rather than sorting the global popularity chart.
+Those audience measures differ between services and are not a guarantee that a
+title is unknown. Genre and past-release checks also apply to returned results;
+adult, future and unknown-date suggestions are excluded. For series, recent means
+a newly launched title, not simply a new season of an older show.
+
+The public APIs validate a fixed category, supported genre, media type and page
+1-10 before authentication and the existing per-account quota. They accept no
+custom upstream URL, query or sort. No extra Supabase tables, writes or library
+reads are introduced. Catalogue pages supply genres directly, avoiding a detail
+request when possible. Optional late enrichment cannot override a newer pat,
+trick, selection or task. Nook keeps his genre reactions. No LLM is used.
 
 ## Catalogue filters
 
@@ -70,7 +89,7 @@ honest fallbacks. These are public TMDB person IDs, not AniList staff IDs.
 
 ## Verification
 
-Unit tests cover strict filter validation and pagination keys, provider/mood
+Unit tests cover strict filter validation and pagination keys, catalogue/genre
 mapping, released/missing episode selection, immutable reordering and credit
 deduplication. Transactional database checks exercised order persistence, stale
 order rejection, valid/invalid cover membership, automatic cover cleanup,

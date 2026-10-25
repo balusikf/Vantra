@@ -70,6 +70,7 @@ function Playback({ type, id, season, episode, anilistId, onBack }: { type: stri
             type === 'anime' ? detail.coverImage?.large || '' : detail.poster_path || '',
             type === 'tv' ? Number(season) : undefined,
             type !== 'movie' ? Number(episode) : undefined,
+            controller.signal,
           )
         } catch {
           if (!controller.signal.aborted) setHistoryError(true)

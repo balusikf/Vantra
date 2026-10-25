@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { validateMediaParams } from '../src/lib/api-policy.ts'
 import { catalogUrl } from '../src/lib/catalog-request.ts'
-import { animeMinimumScore, emptyCatalogFilters, genreOptions, moodGenre, nookMoods, pageCatalogFilters } from '../src/lib/catalog-filters.ts'
+import { animeMinimumScore, emptyCatalogFilters, genreOptions, pageCatalogFilters } from '../src/lib/catalog-filters.ts'
 import { pendingSeasonEpisodes } from '../src/lib/season-tracking.ts'
 import { moveCollectionItem } from '../src/lib/library-tracking.ts'
 import { presentPerson } from '../src/lib/people.ts'
@@ -29,11 +29,6 @@ test('invalid filters fail closed before reaching providers',()=>{
 test('page URLs restore valid filters while rejecting unsupported and repeated values',()=>{
   assert.deepEqual(pageCatalogFilters('movie',{genre:'comedy',year:'2022',score:'8',runtime:'120'}),{genre:'comedy',year:'2022',score:'8',runtime:'120'})
   assert.deepEqual(pageCatalogFilters('anime',{genre:'not-valid',year:['2022','2023'],score:'100',runtime:'120'}),emptyCatalogFilters)
-})
-test('every Nook mood maps to a real genre for its chosen catalogue',()=>{
-  for(const kind of ['movie','tv','anime'])for(const mood of nookMoods){const genre=moodGenre(mood.id,kind);assert.ok(!genre||Object.hasOwn(genreOptions(kind),genre))}
-  assert.equal(moodGenre('tense','tv'),'mystery')
-  assert.equal(moodGenre('imagine','anime'),'fantasy')
 })
 test('an eight-out-of-ten minimum maps to AniList’s inclusive 80-point boundary, not 79',()=>{
   assert.equal(animeMinimumScore('8'),80);assert.equal(animeMinimumScore('9'),90);assert.equal(animeMinimumScore(''),undefined)

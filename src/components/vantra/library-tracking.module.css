@@ -27,3 +27,9 @@
 .trackingNotice { color:#92929d; font-size:11px; margin:15px 0; line-height:1.6; }
 @keyframes enter { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
 @media(prefers-reduced-motion:reduce) { .dialog { animation:none; } .iconButton,.manage { transition:none; } }
+@media (max-width:560px) {
+  .heading { gap: 10px; }
+  .heading button { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; }
+  .create input { min-width: 0; font-size: 16px; }
+  .iconButton { min-width: 40px; min-height: 44px; }
+}

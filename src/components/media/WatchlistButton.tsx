@@ -13,13 +13,13 @@ interface WatchlistButtonProps {
 }
 
 export default function WatchlistButton({ tmdbId, mediaType, title, posterPath, className }: WatchlistButtonProps) {
-  const { isInWatchlist, loading, pending, error, toggleWatchlist, reviewRemoval, cancelReviewRemoval } = useWatchlist(tmdbId, mediaType)
+  const { isInWatchlist, loading, pending, error, readFailed, retry, toggleWatchlist, reviewRemoval, cancelReviewRemoval } = useWatchlist(tmdbId, mediaType)
 
   return (
     <div>
     <button
       onClick={() => toggleWatchlist(title, posterPath)}
-      disabled={pending || loading}
+      disabled={pending || loading || readFailed}
       aria-pressed={isInWatchlist}
       aria-busy={pending}
       className={className || `inline-flex items-center gap-2 font-bold px-6 py-3 rounded-lg transition-all duration-200 border ${
@@ -41,7 +41,7 @@ export default function WatchlistButton({ tmdbId, mediaType, title, posterPath, 
       )}
     </button>
     {reviewRemoval && <RemoveReviewedTitleDialog title={title} busy={pending} error={error} onCancel={cancelReviewRemoval} onConfirm={() => { void toggleWatchlist(title, posterPath, true) }} />}
-    {error && <p role="alert" className="text-red-400 text-sm mt-2">{error}</p>}
+    {error && <p role="alert" className="text-red-400 text-sm mt-2">{error}{readFailed && <button type="button" className="ml-2 underline" onClick={retry}>Try again</button>}</p>}
     </div>
   )
 }

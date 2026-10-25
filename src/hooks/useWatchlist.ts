@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { removeSavedTitle } from '@/lib/library-delete'
+import { requireCurrentAccount } from '@/lib/library-mutations'
 import { useAccount } from '@/components/vantra/AccountProvider'
 
 export function useWatchlist(tmdbId: number, mediaType: string) {
@@ -13,6 +14,8 @@ export function useWatchlist(tmdbId: number, mediaType: string) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const busy = useRef(false)
+  const generation = useRef(0)
+  const [readFailed, setReadFailed] = useState(false)
   const [reviewRemoval, setReviewRemoval] = useState(false)
   const [revision,setRevision]=useState(0)
   useEffect(()=>{
@@ -22,10 +25,12 @@ export function useWatchlist(tmdbId: number, mediaType: string) {
   },[tmdbId,mediaType])
 
   useEffect(() => {
+    const token = ++generation.current
     const controller = new AbortController()
     if (accountLoading) return () => controller.abort()
     const checkWatchlist = async () => {
       setLoading(true)
+      setReviewRemoval(false); setReadFailed(false); setPending(false)
       setIsInWatchlist(false)
       setError(null)
       try {
@@ -36,46 +41,49 @@ export function useWatchlist(tmdbId: number, mediaType: string) {
         if (queryError) throw queryError
         if (!controller.signal.aborted) setIsInWatchlist(Boolean(data?.length))
       } catch {
-        if (!controller.signal.aborted) setError('Could not load your watchlist. Please reload and try again.')
+        if (!controller.signal.aborted) { setReadFailed(true); setError('Could not load your watchlist. Please try again.') }
       } finally {
         if (!controller.signal.aborted) { setLoading(false); setLoadedFor(selection) }
       }
     }
     void checkWatchlist()
-    return () => controller.abort()
+    return () => { controller.abort(); generation.current = token + 1 }
   }, [tmdbId, mediaType, revision, userId, accountLoading, selection])
 
   const toggleWatchlist = async (title: string, posterPath: string, reviewConfirmed = false) => {
-    if (busy.current || loading || accountLoading || loadedFor !== selection) return
+    if (busy.current || loading || readFailed || accountLoading || loadedFor !== selection || !userId) return
+    const token = generation.current
+    const current = () => token === generation.current
+    const assertCurrent = () => { if (!current()) throw new DOMException('Selection changed', 'AbortError') }
     busy.current = true
     setPending(true)
     setError(null)
     try {
       const supabase = createClient()
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError) throw authError
-      if (!user) throw new Error('Sign in required')
+      await requireCurrentAccount(supabase, userId, assertCurrent)
       if (isInWatchlist) {
-        const result = await removeSavedTitle(supabase, user.id, { tmdb_id: tmdbId, media_type: mediaType }, reviewConfirmed)
+        const result = await removeSavedTitle(supabase, userId, { tmdb_id: tmdbId, media_type: mediaType }, reviewConfirmed)
+        assertCurrent()
         if (result.needsConfirmation) { setReviewRemoval(true); return }
         setReviewRemoval(false)
         setIsInWatchlist(false)
       } else {
         const { error: insertError } = await supabase.from('watchlist').insert({
-          user_id: user.id, tmdb_id: tmdbId, media_type: mediaType, title, poster_path: posterPath,
+          user_id: userId, tmdb_id: tmdbId, media_type: mediaType, title, poster_path: posterPath,
         })
+        assertCurrent()
         // A duplicate means this title was already added in another tab.
         if (insertError && insertError.code !== '23505') throw insertError
         setIsInWatchlist(true)
       }
       window.dispatchEvent(new CustomEvent('vantra-tracking-reload',{detail:{id:tmdbId,kind:mediaType}}))
     } catch {
-      setError('Could not update your watchlist. Please try again.')
+      if (current()) setError('Could not update your watchlist. Please reload and try again.')
     } finally {
       busy.current = false
-      setPending(false)
+      if (current()) setPending(false)
     }
   }
 
-  return { isInWatchlist: loadedFor === selection && isInWatchlist, loading: loading || accountLoading || loadedFor !== selection, pending, error, toggleWatchlist, reviewRemoval, cancelReviewRemoval: () => setReviewRemoval(false) }
+  return { isInWatchlist: loadedFor === selection && isInWatchlist, loading: loading || accountLoading || loadedFor !== selection, pending, error, readFailed, retry: () => setRevision(value => value + 1), toggleWatchlist, reviewRemoval, cancelReviewRemoval: () => setReviewRemoval(false) }
 }

@@ -12,6 +12,7 @@ interface TMDBDetail extends Omit<TMDBMedia, 'images'> {
 }
 
 export interface MovieDetail extends TMDBDetail {
+  belongs_to_collection?: { id: number; name: string; poster_path: string | null; backdrop_path: string | null } | null
   title: string
   runtime: number | null
   budget: number

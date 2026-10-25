@@ -4,7 +4,8 @@ import { validateMediaParams } from '@/lib/api-policy'
 import { getAnimeArtwork, getAnimeEpisodePreviews } from '@/lib/anime-artwork'
 import { parseInteger } from '@/lib/watch-metadata'
 import { readCatalogFilters } from '@/lib/catalog-filters'
-import { getAnimeCatalog, getAnimeDetail, getAnimeEpisodes, getAnimeReviews, getTrendingAnime, getPopularAnime, getTopRatedAnime, searchAnime } from '@/lib/anilist'
+import { getAnimeCatalog, getAnimeDetail, getAnimeEpisodes, getAnimeReviews, getTrendingAnime, getPopularAnime, getTopRatedAnime, searchAnime, getNookDiscoverAnime } from '@/lib/anilist'
+import type { DiscoveryLane } from '@/lib/nook-discovery'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -28,6 +29,9 @@ export async function GET(request: NextRequest) {
     let data
 
     switch (type) {
+      case 'nook-discover':
+        data = await getNookDiscoverAnime(searchParams.get('collection') as DiscoveryLane, searchParams.get('genre') || '', page)
+        break
       case 'catalog':
         data = await getAnimeCatalog(page, sort as 'trending' | 'popular' | 'top-rated', query || undefined,readCatalogFilters(searchParams),searchParams.get('released')==='1')
         break

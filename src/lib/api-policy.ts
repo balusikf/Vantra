@@ -1,8 +1,19 @@
 import { genreOptions } from './catalog-filters.ts'
+import { discoveryLanes } from './nook-discovery.ts'
 // Pure request policy: no session data or persistent storage.
 export class InvalidApiInput extends Error {}
 
 export function validateMediaParams(provider: 'tmdb' | 'anilist' | 'stream', params: URLSearchParams) {
+  if (provider !== 'stream' && params.get('type') === 'nook-discover') {
+    const allowed = provider === 'tmdb' ? ['type', 'mediaType', 'collection', 'genre', 'page'] : ['type', 'collection', 'genre', 'page']
+    if (params.toString().length > 2048 || [...params.keys()].some(key => !allowed.includes(key) || params.getAll(key).length !== 1)) throw new InvalidApiInput('Invalid discovery request.')
+    if (!discoveryLanes.some(lane => lane === params.get('collection'))) throw new InvalidApiInput('Choose a discovery category.')
+    if (provider === 'tmdb' && !['movie', 'tv'].includes(params.get('mediaType') || '')) throw new InvalidApiInput('Choose movies or series.')
+    const kind = provider === 'anilist' ? 'anime' : params.get('mediaType')!
+    if (params.has('genre') && !Object.hasOwn(genreOptions(kind), params.get('genre')!)) throw new InvalidApiInput('Invalid genre.')
+    if (params.has('page') && !/^(?:[1-9]|10)$/.test(params.get('page')!)) throw new InvalidApiInput('Invalid discovery page.')
+    return
+  }
   const fields = provider === 'tmdb' ? ['type', 'query', 'mediaType', 'id', 'season', 'page', 'pageSize','sort','genre','year','score','runtime','released']
     : provider === 'anilist' ? ['type', 'query', 'id', 'page', 'pageSize', 'sort','genre','year','score','released'] : ['type', 'id', 'season', 'episode', 'anilistId']
   if (params.toString().length > 2048) throw new InvalidApiInput('Request is too long.')
@@ -10,7 +21,7 @@ export function validateMediaParams(provider: 'tmdb' | 'anilist' | 'stream', par
     if (!fields.includes(key) || params.getAll(key).length !== 1) throw new InvalidApiInput('Invalid or repeated parameter.')
   }
   const type = params.get('type') || ''
-  const types = provider === 'tmdb' ? ['trending', 'popular-movies', 'popular-tv', 'top-rated-movies', 'top-rated-tv', 'search', 'movie-detail', 'tv-detail', 'season-detail', 'movie-reviews', 'tv-reviews','discover','person']
+  const types = provider === 'tmdb' ? ['trending', 'popular-movies', 'popular-tv', 'top-rated-movies', 'top-rated-tv', 'search', 'movie-detail', 'tv-detail', 'season-detail', 'movie-reviews', 'tv-reviews','discover','person','collection-detail','collection-world']
     : provider === 'anilist' ? ['catalog', 'trending', 'popular', 'top-rated', 'detail', 'episodes', 'search', 'reviews'] : ['movie', 'tv', 'anime']
   if (!types.includes(type)) throw new InvalidApiInput('Invalid media request.')
   const filterKeys=['genre','year','score','runtime','released']
@@ -39,6 +50,7 @@ export function validateMediaParams(provider: 'tmdb' | 'anilist' | 'stream', par
   if (type === 'search' && !params.get('query')) throw new InvalidApiInput('Enter a title to search.')
   if ((provider === 'stream' || ['movie-detail', 'tv-detail', 'season-detail', 'detail', 'episodes', 'reviews', 'movie-reviews', 'tv-reviews','person'].includes(type)) && !params.has('id')) throw new InvalidApiInput('Missing title id.')
   if(type==='person'&&[...params.keys()].some(key=>!['type','id'].includes(key)))throw new InvalidApiInput('Invalid person parameter.')
+  if(['collection-detail','collection-world'].includes(type)&&(!params.has('id')||[...params.keys()].some(key=>!['type','id'].includes(key))))throw new InvalidApiInput('Invalid film collection request.')
   if (['reviews', 'movie-reviews', 'tv-reviews'].includes(type) && [...params.keys()].some(key => !['type', 'id'].includes(key))) throw new InvalidApiInput('Invalid review parameter.')
   if (type === 'season-detail' && !params.has('season')) throw new InvalidApiInput('Missing season.')
 }

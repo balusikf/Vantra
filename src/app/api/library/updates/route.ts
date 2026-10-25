@@ -1,5 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { apiJson } from '@/lib/media-api'
+import { apiJson, mediaApiAccount } from '@/lib/media-api'
 import { createTokenBucket } from '@/lib/api-policy'
 import { libraryReleases } from '@/lib/library-releases'
 import type { EpisodeRelease } from '@/lib/library-tracking'
@@ -9,9 +8,9 @@ export async function GET(request:Request) {
   const params=new URL(request.url).searchParams
   const ids=[...new Set((params.get('ids')||'').split(','))]
   if(params.getAll('ids').length!==1||[...params.keys()].some(key=>key!=='ids')||ids.length>18||!ids.every(id=>/^[\da-f]{8}(-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id)))return apiJson({error:'Invalid library selection.'},400)
-  const client=await createServerSupabaseClient()
-  const {data:{user},error:authError}=await client.auth.getUser()
-  if(authError||!user)return apiJson({error:'Unauthorized'},401)
+  const account=await mediaApiAccount()
+  if(account.status!==200)return apiJson({error:account.error},account.status,account.retryAfter)
+  const {client,user}=account
   const retry=limit(user.id)
   if(retry)return apiJson({error:'Please wait before checking releases again.'},429,retry)
   const saved=await client.from('watchlist').select('id,tmdb_id,media_type,completed_at').eq('user_id',user.id).eq('watch_status','completed').in('id',ids).not('completed_at','is',null)

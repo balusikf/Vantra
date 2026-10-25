@@ -4,6 +4,7 @@ import { CatalogUnavailableError, createUpstreamGate, retrySeconds } from './ups
 import type { AnimeArtwork, AnimeEpisodePreview } from './anime-artwork-policy'
 import { normalizeMediaReviews } from './media-reviews'
 import { animeMinimumScore, genreOptions, type CatalogFilters } from './catalog-filters'
+import { animeDiscoveryVariables, animeDiscoveryTitles, type DiscoveryLane, type DiscoveryPage } from './nook-discovery'
 const upstream = createUpstreamGate()
 const ANILIST_API = 'https://graphql.anilist.co'
 
@@ -208,6 +209,21 @@ export async function getAnimeCatalog(page: number, sort: 'trending' | 'popular'
   }`
   const data = await anilistFetch(query, { page, search: search || undefined, genre:filters?.genre?genreOptions('anime')[filters.genre][1]:undefined,year:filters?.year?Number(filters.year):undefined,score:animeMinimumScore(filters?.score||''),excluded:released?'NOT_YET_RELEASED':undefined,sort: search ? ['SEARCH_MATCH'] : [sort === 'popular' ? 'POPULARITY_DESC' : sort === 'top-rated' ? 'SCORE_DESC' : 'TRENDING_DESC'] })
   return { results: data.Page.media as AniListMedia[], hasMore: Boolean(data.Page.pageInfo.hasNextPage) }
+}
+
+export async function getNookDiscoverAnime(collection: DiscoveryLane, genre: string, page: number): Promise<DiscoveryPage> {
+  const now = new Date()
+  const query = `query($page:Int,$genre:String,$sort:[MediaSort],$after:FuzzyDateInt,$before:FuzzyDateInt,$score:Int,$audienceMin:Int,$audienceMax:Int) {
+    Page(page:$page,perPage:18) {
+      pageInfo { lastPage }
+      media(type:ANIME,isAdult:false,status_not:NOT_YET_RELEASED,genre:$genre,sort:$sort,startDate_greater:$after,startDate_lesser:$before,averageScore_greater:$score,popularity_greater:$audienceMin,popularity_lesser:$audienceMax) {
+        id title { english romaji } coverImage { large extraLarge } genres status isAdult
+        startDate { year month day } popularity averageScore
+      }
+    }
+  }`
+  const data = await anilistFetch(query, animeDiscoveryVariables(collection, genre, page, now))
+  return { results: animeDiscoveryTitles((data.Page.media || []).slice(0, 18), collection, genre, now), totalPages: Math.max(1, Math.min(10, Number(data.Page.pageInfo.lastPage) || 1)) }
 }
 
 export interface AnimeEpisodeData {

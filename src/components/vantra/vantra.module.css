@@ -515,7 +515,7 @@
 .personalHeroMark { position: absolute; right: 8%; top: 100px; font-size: 215px; line-height: 1; letter-spacing: -23px; font-weight: 300; color: #ffffff04; user-select: none; }
 .personalContent { padding: 39px 5% 30px; max-width: 1580px; margin: 0 auto; }
 .accountLayout { display: grid; grid-template-columns: 252px minmax(0,1fr); gap: 52px; }
-.accountSidebar { align-self: start; position: sticky; top: 30px; }
+.accountSidebar { min-width: 0; align-self: start; position: sticky; top: 30px; }
 .identityCard { padding: 30px 20px 27px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: var(--surface); }
 .identityCard h2 { font-size: 20px; font-weight: 550; letter-spacing: -.5px; margin: 22px 0 8px; overflow-wrap: anywhere; }
 .identityCard > p { font-size: 10px; color: var(--muted); }
@@ -620,8 +620,8 @@
   .accountLayout { gap: 30px; grid-template-columns: 225px minmax(0,1fr); }
 }
 @media (max-width:760px) {
-  .accountLayout { grid-template-columns: 1fr; gap: 30px; }
-  .accountSidebar { position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .accountLayout { grid-template-columns: minmax(0,1fr); gap: 30px; }
+  .accountSidebar { position: static; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px; }
   .identityCard { grid-row: span 2; padding: 24px 15px; }
   .accountNav { margin: 0; }
   .signOut { align-self: end; }
@@ -786,3 +786,28 @@
 .suggestionGrid[data-updating] { transition: opacity .15s; }
 .suggestionGrid[data-updating=true] { opacity: .65; }
 @media (prefers-reduced-motion: reduce) { .suggestionGrid[data-updating] { transition: none; } }
+/* Keep narrow layouts within their actual content width, including touch targets. */
+@media (max-width:560px) {
+  .header { padding: 0 10px; gap: 8px; }
+  .header .wordmark { min-height: 44px; }
+  .header .wordmarkSvg { width: clamp(88px,calc(100vw - 270px),119px); }
+  .headerActions { gap: 0; flex-shrink: 0; }
+  .headerActions > button { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; }
+  .headerActions > .avatar { flex: 0 0 44px; width: 44px; height: 44px; background: transparent; }
+  .headerActions > .avatar::after { inset: 1px; }
+  .searchHeading button { flex: 0 0 44px; width: 44px; height: 44px; }
+  .globalSearchField { height: 56px; gap: 8px; padding: 0 10px; }
+  .globalSearchField input { font-size: 16px; }
+  .globalSearchField button,.globalSearchField button[type=submit] { width: 44px; height: 44px; }
+  .searchScopes button { min-height: 44px; padding: 8px; }
+  .catalogSearch { min-height: 48px; gap: 8px; padding: 0 10px; }
+  .catalogSearch input { font-size: 16px; }
+  .catalogSearch button { min-width: 44px; min-height: 44px; flex-shrink: 0; }
+  .filters button { min-height: 44px; }
+  .accountNav { min-width: 0; max-width: 100%; }
+  .accountNav > :is(a,span) { flex-shrink: 0; min-height: 44px; }
+  .photoSettings > div { min-width: 0; }
+  .photoActions { align-items: flex-start; }
+  .formFoot { flex-wrap: wrap; }
+  .nameField input,.emailField input { font-size: 16px; }
+}

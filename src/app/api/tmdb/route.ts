@@ -5,6 +5,7 @@ import { parseInteger } from '@/lib/watch-metadata'
 import { catalogPage, type ProviderPage } from '@/lib/catalog-page'
 import type { TMDBMedia } from '@/lib/tmdb'
 import { readCatalogFilters } from '@/lib/catalog-filters'
+import type { DiscoveryLane } from '@/lib/nook-discovery'
 import {
   getTrending,
   getPopularMovies,
@@ -16,7 +17,7 @@ import {
   getSeasonDetail,
   getMovieDetail,
   getMediaReviews,
-  discoverMedia,getPersonDetail,
+  discoverMedia,getPersonDetail,getNookDiscoverMedia,getFilmCollection,getRelatedFilmWorld,
 } from '@/lib/tmdb'
 
 export async function GET(request: NextRequest) {
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (type === 'nook-discover') return apiJson(await getNookDiscoverMedia(mediaType as 'movie' | 'tv', searchParams.get('collection') as DiscoveryLane, searchParams.get('genre') || '', page))
     if (pageSize === '18') {
       if (type === 'search' && !query) return apiJson({ error: 'No query' }, 400)
       const loaders: Record<string, (page: number) => Promise<ProviderPage<TMDBMedia>>> = {
@@ -55,6 +57,12 @@ export async function GET(request: NextRequest) {
     let data
 
     switch (type) {
+      case 'collection-world':
+        data = await getRelatedFilmWorld(Number(id))
+        break
+      case 'collection-detail':
+        data = await getFilmCollection(Number(id))
+        break
       case 'discover':
         data=await discoverMedia(mediaType as 'movie'|'tv',readCatalogFilters(searchParams),searchParams.get('sort')||'popular',page,searchParams.get('released')==='1')
         break

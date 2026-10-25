@@ -48,7 +48,7 @@ and `/` never mount the panel; watch pages have no homepage companion or navbar.
 ## Tonight picker
 
 The shared picker now has explicit From my list and Discover task modes. The
-Planned-list behavior below belongs to From my list. Catalogue mood discovery
+Planned-list behavior below belongs to From my list. Varied catalogue discovery
 and its bounded reads are described in [Discovery and library](DISCOVERY-AND-LIBRARY.md).
 
 Only clicking Pick loads the signed-in owner's `watch_status = planned` rows.

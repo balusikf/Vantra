@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { apiJson, mediaApiAccount } from '@/lib/media-api'
 import { createTokenBucket } from '@/lib/api-policy'
 import { parsePersonalStats, statsTimezone } from '@/lib/personal-stats'
 
@@ -11,9 +11,9 @@ export async function GET(request: Request) {
     if ([...params.keys()].some(key => key !== 'timezone') || params.getAll('timezone').length > 1) throw new Error('Invalid parameters.')
     timezone = statsTimezone(params.get('timezone'))
   } catch { return Response.json({ error: 'Invalid statistics request.' }, { status: 400, headers }) }
-  const supabase = await createServerSupabaseClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) return Response.json({ error: 'Sign in to view your statistics.' }, { status: 401, headers })
+  const account = await mediaApiAccount()
+  if (account.status !== 200) return apiJson({ error: account.error }, account.status, account.retryAfter)
+  const { client: supabase, user } = account
   const retry = quota(user.id)
   if (retry) return Response.json({ error: 'Please wait a moment before refreshing again.' }, { status: 429, headers: { ...headers, 'Retry-After': String(retry) } })
   try {

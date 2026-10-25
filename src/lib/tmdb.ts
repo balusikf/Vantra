@@ -4,6 +4,9 @@ import { CatalogUnavailableError, createUpstreamGate, retrySeconds } from './ups
 import { normalizeMediaReviews } from './media-reviews'
 import { genreOptions, type CatalogFilters } from './catalog-filters'
 import { presentPerson } from './people'
+import { presentFilmCollection } from './film-collection'
+import { loadRelatedFilmWorld } from './film-worlds'
+import { tmdbDiscoveryPath, tmdbDiscoveryTitles, type DiscoveryLane, type DiscoveryPage } from './nook-discovery'
 const upstream = createUpstreamGate()
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3'
 const TMDB_API_KEY = process.env.TMDB_API_KEY!
@@ -95,8 +98,26 @@ export async function discoverMedia(kind:'movie'|'tv',filters:CatalogFilters,sor
   return tmdbFetch(`/discover/${kind}?${params}`,page)
 }
 
+export async function getNookDiscoverMedia(kind: 'movie' | 'tv', collection: DiscoveryLane, genre: string, page: number): Promise<DiscoveryPage> {
+  const now = new Date()
+  const data = await tmdbFetch(tmdbDiscoveryPath(kind, collection, genre, now), page)
+  return { results: tmdbDiscoveryTitles((data.results || []).slice(0, 20), kind, collection, genre, now), totalPages: Math.max(1, Math.min(10, Number(data.total_pages) || 1)) }
+}
+
 export async function getPersonDetail(id:number) {
   return presentPerson(await tmdbFetch(`/person/${id}?language=en-US&append_to_response=combined_credits`))
+}
+
+export async function getFilmCollection(id: number) {
+  const data = presentFilmCollection(await tmdbFetch(`/collection/${id}?language=en-US`))
+  if (data.id !== id) throw new Error('Invalid film collection.')
+  return data
+}
+
+export async function getRelatedFilmWorld(id: number) {
+  const data = await loadRelatedFilmWorld(id, getFilmCollection)
+  if (data.world && !data.collections.length && data.unavailable) throw new CatalogUnavailableError(15)
+  return data
 }
 
 // Detail sezóny (epizódy s dátumami)

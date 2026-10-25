@@ -56,7 +56,7 @@
 .dialog .bubble { min-height: 45px; max-width: 310px; }
 .dialog .interactions { margin-top: 10px; }
 .picker { margin: 18px 0 21px; padding-top: 18px; border-top: 1px solid #ffffff0d; }
-.taskPicker{min-width:0;margin-top:20px}.tasks{display:flex;padding:4px;gap:4px;border:1px solid #ffffff14;border-radius:11px;background:#ffffff03}.tasks button{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-height:39px;padding:9px;color:#9696a1;font-size:11px;border:0;background:transparent;border-radius:7px;cursor:pointer}.tasks button[aria-pressed=true]{color:#fff}.tasks button i{position:absolute;inset:0;z-index:-1;border-radius:7px;border:1px solid #ed26383b;background:#ed263818}.tasks button[aria-pressed=true] svg{color:#ff6472}.taskScope{color:#8e8e9b;font-size:9px;line-height:1.6;margin:9px 3px 17px}.moods{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}.moods button{padding:11px 8px;min-height:38px;border:1px solid #ffffff12;border-radius:8px;background:#ffffff02;color:#a2a2ad;font-size:10px;cursor:pointer;transition:background .2s,color .2s,border-color .2s}.moods button[aria-pressed=true]{background:#ed263811;border-color:#ed26383d;color:#f5f5f7}.home .taskPicker{margin-top:0}
+.taskPicker{min-width:0;margin-top:20px}.tasks{display:flex;padding:4px;gap:4px;border:1px solid #ffffff14;border-radius:11px;background:#ffffff03}.tasks button{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-height:39px;padding:9px;color:#9696a1;font-size:11px;border:0;background:transparent;border-radius:7px;cursor:pointer}.tasks button[aria-pressed=true]{color:#fff}.tasks button i{position:absolute;inset:0;z-index:-1;border-radius:7px;border:1px solid #ed26383b;background:#ed263818}.tasks button[aria-pressed=true] svg{color:#ff6472}.taskScope{color:#8e8e9b;font-size:9px;line-height:1.6;margin:9px 3px 17px}.home .taskPicker{margin-top:0}
 .pickerHeading { display: flex; gap: 11px; align-items: center; margin-bottom: 17px; }
 .pickerHeading > svg { color: #ff5362; }
 .pickerHeading h3 { font-size: 14px; font-weight: 550; letter-spacing: -.2px; }
@@ -96,3 +96,21 @@
   .panelFooter { padding: 12px 0; }
 }
 @media (prefers-reduced-motion: reduce) { .home *,.dialog *,.trigger,.trigger * { transition: none !important; animation: none !important; } }
+.discoveryCollections { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.discoveryCollections button { min-height: 44px; padding: 10px 8px; border: 1px solid #ffffff14; border-radius: 8px; background: #ffffff03; color: #a2a2ad; font-size: 10px; cursor: pointer; transition: background .2s,color .2s,border-color .2s,transform .2s; }
+.discoveryCollections button:first-child { grid-column: 1/-1; }
+.discoveryCollections button[aria-pressed=true] { color: #fff; border-color: #ed26384d; background: linear-gradient(120deg,#ed26381c,#ed263809); }
+.discoveryCollections button:hover:not(:disabled) { color: #fff; border-color: #ffffff35; transform: translateY(-1px); }
+.discoveryHint { min-height: 30px; color: #92929e; font-size: 10px; line-height: 1.65; margin: 10px 2px 14px; }
+.discoveryGenre { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; text-align: left; }
+.discoveryGenre label { color: #a2a2ad; font-size: 10px; }
+.discoveryGenre > div { position: relative; flex: 1; min-width: 0; }
+.discoveryGenre select { appearance: none; width: 100%; min-height: 44px; padding: 10px 32px 10px 12px; border: 1px solid #ffffff17; border-radius: 8px; background: #151518; color: #dedee4; font: inherit; font-size: 11px; cursor: pointer; transition: border-color .2s,background .2s; }
+.discoveryGenre select:hover:not(:disabled) { border-color: #ffffff35; background: #1a1a1e; }
+.discoveryGenre select:focus-visible,.discoveryCollections button:focus-visible { outline: 2px solid #ff6673; outline-offset: 3px; }
+.discoveryGenre svg { position: absolute; right: 12px; top: calc(50% - 6px); pointer-events: none; color: #a2a2ad; }
+@media (max-width:650px) {
+  .close { width: 44px; height: 44px; }
+  .panelHeader { gap: 10px; }
+  .tasks button,.kinds button,.home .kinds button,.discoveryCollections button { min-height: 44px; }
+}

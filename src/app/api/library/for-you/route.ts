@@ -1,6 +1,5 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { createTokenBucket } from '@/lib/api-policy'
-import { apiJson } from '@/lib/media-api'
+import { apiJson, mediaApiAccount } from '@/lib/media-api'
 import { getTitleRecommendations } from '@/lib/tmdb'
 import { getAnimeRecommendations } from '@/lib/anilist'
 import { parseRecommendationSeeds, recommendationCard, recommendationKey, selectRecommendations } from '@/lib/for-you'
@@ -8,9 +7,9 @@ import { parseRecommendationSeeds, recommendationCard, recommendationKey, select
 const quota=createTokenBucket(12,60_000)
 export async function GET(request:Request) {
   if(new URL(request.url).search)return apiJson({error:'Invalid recommendation request.'},400)
-  const client=await createServerSupabaseClient()
-  const {data:{user},error:authError}=await client.auth.getUser()
-  if(authError||!user)return apiJson({error:'Sign in to see your recommendations.'},401)
+  const account=await mediaApiAccount()
+  if(account.status!==200)return apiJson({error:account.error},account.status,account.retryAfter)
+  const {client,user}=account
   const retry=quota(user.id)
   if(retry)return apiJson({error:'Please wait before refreshing your picks again.'},429,retry)
   const signal=AbortSignal.any([request.signal,AbortSignal.timeout(20_000)])

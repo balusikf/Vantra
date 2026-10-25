@@ -1,75 +1,40 @@
 # VANTRA
 
-A private space for movies, series and anime.
+A private web application for discovering movies, series and anime, managing a personal library, and tracking viewing progress.
 
-VANTRA started as a personal learning project for a small group of friends. It has since grown into a complete visual overhaul with a personal library, manual episode tracking, recommendations and a small animated companion called Nook. It remains non-commercial and in active development.
+Built with Next.js, React and Supabase, VANTRA combines catalogue metadata, personal recommendations and playback through external embedded sources. It is a non-commercial project in active development, with access restricted to approved accounts.
 
-![VANTRA homepage with cinematic spotlight and navigation](docs/screenshots/home.jpg)
+![VANTRA title detail page featuring Cyberpunk: Edgerunners](docs/screenshots/title-detail.jpg)
 
 ## Features
 
-- **Discover:** browse movies, series and anime, search by title, refine results with filters, and explore cast members and their other work. Catalogues load 18 titles at a time.
-- **Your library:** save titles, manage watching status, build collections, and keep private ratings and notes separate from official catalogue scores.
-- **Episode tracking:** mark individual episodes or a released season watched, undo a season's marks, and see watched counts in the season picker.
-- **Continue watching:** up to three titles with the next unmarked episode or the last episode opened. Caught-up titles and future releases stay out of the shelf. Completed titles can return with newly released episodes according to their completion date and watched marks.
-- **For you:** six recommendations inspired by your highly rated, watching or completed titles. Already saved and previously opened titles are filtered out.
-- **Nook:** an animated companion with gaze tracking, pet interactions, tricks and genre reactions. Ask for a pick from your planned list or discover something new. Beanie, glasses and bow tie preferences are remembered per account in the current browser. Nook also presents community reviews on supported detail pages and stays off the playback page.
-- **Your account:** a shared avatar, profile settings and private library statistics. A separate owner-only panel automatically measures database and file-storage capacity.
-- **Consistent design:** dark surfaces, red accents, poster cards, title artwork, animated search and responsive layouts with reduced-motion support.
-
-## A closer look
-
-### Personal recommendations
-
-Each suggestion explains which story inspired it. The scores shown on these cards are catalogue scores; your own ratings and notes stay in My Library.
-
-![For you recommendations with poster cards and their source title](docs/screenshots/for-you.jpg)
-
-### Title details
-
-Film, series and anime pages share the same visual language, with title artwork, trailers, cast, galleries and episode information where available.
-
-![VANTRA series detail page](docs/screenshots/title-detail.jpg)
-
-<details>
-<summary>See the library, Nook and mobile layout</summary>
-
-### Library
-
-Collections, watching status and private review controls. This view shows planned titles without personal review text.
-
-![Library filtered to planned titles](docs/screenshots/library.jpg)
-
-### Meet Nook
-
-A quiet place to pick the next story, with the same companion available from the navigation.
-
-![Nook with its interaction and discovery controls](docs/screenshots/nook.jpg)
-
-### On a smaller screen
-
-<img src="docs/screenshots/mobile.jpg" alt="VANTRA movie catalogue on a mobile viewport" width="390" />
-
-</details>
+- **Discovery:** searchable movie, series and anime catalogues with filters, trailers, cast profiles and episode information. Lists load 18 titles at a time.
+- **Personal library:** watching statuses, custom collections, private ratings and notes kept separate from catalogue scores.
+- **Episode tracking:** manual watched marks for individual episodes or released seasons, with season counts and undo for bulk marks.
+- **Continue watching:** up to three titles based on watched marks or the last episode opened. Caught-up titles and future episodes are excluded.
+- **Recommendations:** suggestions based on library activity, with saved and previously opened titles filtered out.
+- **Film collections:** release-order lists with private watched progress and verified links between selected connected film worlds.
+- **Nook:** an animated companion that selects titles from the planned list or a broader discovery catalogue, presents community reviews, and supports optional accessories. It remains hidden during playback.
+- **Account tools:** profile and avatar settings, private library statistics, and an owner-only database and file-storage capacity panel.
+- **Responsive interface:** a shared visual theme, animated navigation and search, and reduced-motion support.
 
 ## How it works
 
-TMDB provides movie and series metadata. AniList supplies anime metadata through GraphQL. VANTRA's server routes validate catalogue requests and keep the TMDB API key on the server.
+TMDB supplies movie and series metadata, artwork and cast information. AniList provides anime metadata through GraphQL. Server routes validate requests, keep the TMDB API key private, and use bounded metadata caches, shared in-flight requests and upstream cooldowns.
 
 Supabase handles authentication, PostgreSQL data and avatar storage. Access is restricted to approved accounts through an email whitelist. Row Level Security limits profiles, saved titles, history, reviews, collections and watched marks to their owner.
 
-Playback comes from external providers embedded in iframes. VANTRA does not host or upload video files. The surrounding source picker and navigation belong to VANTRA; the video controls, subtitle options and quality choices depend on the selected provider.
+Personal data stays outside the shared catalogue cache. Account verification, ownership filters and database policies protect private operations.
 
-## Playback sources and advertising
+## Playback and limitations
 
-Playback availability varies by title, episode, region and time. Some providers offer broader availability while also displaying advertisements or opening popups. The source picker uses an `ADS` badge to flag some advertising-supported sources. Other sources may also serve ads.
+Playback uses external providers embedded in iframes. VANTRA does not host or upload video files. Availability, video controls, subtitles, quality settings and playback positions depend on the selected source.
 
-An updated browser and a reputable content blocker are recommended:
+Some sources display advertisements or open popups, including sources without an `ADS` badge. An updated browser and a reputable content blocker are recommended. These measures reduce unwanted content but do not guarantee safety or availability.
 
-- **Firefox and Zen:** [uBlock Origin from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/). Zen supports Firefox extensions.
-- **Chrome and Edge:** [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home), using the official store links listed by the project.
+Watch history records titles and episodes opened, not confirmed completion. Episode progress relies on manual marks. An equivalent title stored separately in TMDB and AniList is not automatically matched across both catalogues.
 
-A blocker reduces unwanted ads and popups but does not guarantee safety. VANTRA does not control third-party advertising. Avoid entering credentials, installing software or granting permissions in provider and advertisement prompts. VANTRA's iframe permission restrictions are an additional layer, not a built-in ad blocker.
+The owner capacity panel measures current database and stored-file sizes. Monthly traffic, active users and other billing totals remain in the Supabase dashboard.
 
 ## Tech stack
 
@@ -120,7 +85,7 @@ npm run build
 npm start
 ```
 
-## Checks and project notes
+## Validation
 
 ```sh
 npm test
@@ -128,48 +93,22 @@ npm run lint
 npm run build
 ```
 
-Public catalogue metadata uses bounded caches, shared in-flight requests and provider cooldowns. Personal data stays outside the shared catalogue cache. The recommendation shelf loads near the viewport, and its library exclusions are checked against the current account.
-
-Useful implementation notes:
+## Documentation
 
 - [Personal recommendations and end-to-end checks](docs/FOR-YOU.md)
 - [Continue watching and its limits](docs/CONTINUE-WATCHING.md)
 - [Library tracking and collections](docs/LIBRARY-TRACKING.md)
+- [Film collections and release order](docs/FILM-COLLECTIONS.md)
 - [Nook and its appearance](docs/NOOK.md)
 - [Automatic owner capacity panel](docs/OWNER-USAGE-PANEL.md)
-- [Latest efficiency and security audit](docs/AUDIT-2026-10-24.md)
-- [Code and privacy review](docs/SECURITY-REVIEW-2026-10-24.md)
+- [Code audit and regression fixes](docs/CODE-AUDIT-2026-10-25.md)
+- [Responsive layout review](docs/MOBILE-REVIEW-2026-10-25.md)
 - [Embedded-player security](docs/PLAYER-SECURITY.md)
-
-### Current limits
-
-Watch history records the last title or episode opened. It does not prove that an episode was finished. Continue watching uses manual marks and episode identity; reliable playback timestamps depend on the provider.
-
-Recommendations exclude exact catalogue identities. An equivalent work stored separately under TMDB and AniList is not automatically matched across both services. Recommendations and episode dates also cannot guarantee that a streaming source has the title available.
-
-The owner capacity panel shows current database and stored-file sizes. Monthly egress, active users and other billing totals remain in the Supabase dashboard.
-
-A fully custom direct-stream player, unified subtitle handling, PWA support, TV mode and automated deployment are still outside the current implementation.
-
-## What I learned
-
-This project has been a practical way to learn how a full-stack application fits together:
-
-- App Router navigation, server and client components, and dynamic routes.
-- PostgreSQL ownership rules, RLS, authentication and file storage.
-- REST and GraphQL integrations, caching, outages and request validation.
-- Reusable components, responsive layouts and animation performance.
-- The limits of embedding a player from another origin.
-- Version control and keeping credentials out of the repository.
-
-The most useful lesson has been that the interface is only one part of the project. Reliable data, clear state, access rules and honest handling of external services matter just as much.
 
 ## Credits
 
-Originally built with assistance from [Claude](https://claude.ai). The current visual overhaul and subsequent features were developed with assistance from Codex, including implementation, debugging and verification.
+Developed with assistance from [Claude](https://claude.ai) and Codex.
 
 - Movie and series data and artwork: [TMDB](https://www.themoviedb.org/).
 - Anime data: [AniList](https://anilist.co/).
 - Nook is adapted from [bloub by Jérémy Perret](https://github.com/jeremy-prt/bloub). Its [MIT license](src/vendor/bloub/LICENSE) is retained with the vendored code.
-
-VANTRA is a personal, non-commercial learning project intended for private use. Video playback is supplied by external services.

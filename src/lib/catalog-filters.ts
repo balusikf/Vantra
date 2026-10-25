@@ -18,8 +18,3 @@ export function readCatalogFilters(params: URLSearchParams): CatalogFilters {
 }
 export function hasCatalogFilters(filters: CatalogFilters) { return Object.values(filters).some(Boolean) }
 export function appendCatalogFilters(params:URLSearchParams,filters:CatalogFilters) { for(const key of ['genre','year','score','runtime'] as const)if(filters[key])params.set(key,filters[key]) }
-export const nookMoods=[{id:'surprise',label:'Surprise me',hint:'A little of anything'},{id:'light',label:'Keep it light',hint:'Comedy & good company'},{id:'tense',label:'Keep me guessing',hint:'Mystery & suspense'},{id:'feel',label:'Make me feel',hint:'Stories with heart'},{id:'adventure',label:'Take me away',hint:'Adventure & escape'},{id:'imagine',label:'Another world',hint:'Sci-fi & fantasy'}] as const
-export type NookMood=typeof nookMoods[number]['id']
-export function moodGenre(mood:NookMood,kind:'movie'|'tv'|'anime') {
-  return mood==='light'?'comedy':mood==='tense'?(kind==='tv'?'mystery':'thriller'):mood==='feel'?'drama':mood==='adventure'?(kind==='tv'?'action':'adventure'):mood==='imagine'?(kind==='tv'?'scifi':'fantasy'):''
-}
