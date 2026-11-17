@@ -14,4 +14,10 @@ Suggested README wording:
 
 > Provider availability and playback reliability vary. Some sources offer broader availability but include third-party advertisements and popups. We recommend using an up-to-date browser with a reputable content blocker, such as uBlock Origin where supported. This reduces unwanted ads and popups but does not guarantee safety. VANTRA does not control third-party advertisements.
 
-This is a planning note for the later README rewrite; the current README has not been rewritten.
+The provider-neutral wording is now covered by the main README and [Playback guide](PLAYBACK.md). Historical provider names above are integration records, not a public reliability ranking.
+
+## Mobile interaction follow-up (requested 17 November 2026)
+
+Plan a dedicated mobile interface pass with larger, better-spaced buttons and touch-friendly navigation, menus, episode actions and dialogs. Preserve VANTRA's overall visual identity and typography. Responsive fitting alone is not the goal: interactions should feel comfortable on a smaller screen.
+
+This is future work, not a completed redesign. The agreed direction and testing criteria are recorded in [Roadmap](ROADMAP.md#planned-a-dedicated-mobile-interaction-pass).

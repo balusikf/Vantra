@@ -7,7 +7,7 @@ import { Check, Eye, Play } from 'lucide-react'
 import s from './vantra.module.css'
 
 // The same presentation for TV and anime; each caller retains its own availability and playback IDs.
-export default function EpisodeRow({ number, title, overview, runtime, date, still, fallback, available, href, playLabel, watched, onWatchedChange, trackingDisabled }: {
+export default function EpisodeRow({ number, title, overview, runtime, date, still, fallback, available, href, playLabel, watched, onWatchedChange, trackingDisabled, filler, recap }: {
   number: number
   title: string
   overview?: string | null
@@ -21,6 +21,8 @@ export default function EpisodeRow({ number, title, overview, runtime, date, sti
   watched?: boolean
   onWatchedChange?: () => void
   trackingDisabled?: boolean
+  filler?: boolean | null
+  recap?: boolean | null
 }) {
   const [failedImages, setFailedImages] = useState<string[]>([])
   const source = [still, fallback].find(value => value && !failedImages.includes(value))
@@ -31,7 +33,7 @@ export default function EpisodeRow({ number, title, overview, runtime, date, sti
       {isFallback && <small className={s.episodeArtworkLabel}>Series artwork</small>}
     </div>
     <div className={s.episodeCopy}>
-      <div className={s.episodeMeta}><span>EPISODE {number}</span>{runtime != null && runtime > 0 && <span>{runtime} min</span>}</div>
+      <div className={s.episodeMeta}><span>EPISODE {number}</span>{runtime != null && runtime > 0 && <span>{runtime} min</span>}{filler === true && <span className={s.fillerBadge} title="The episode guide identifies this as a filler episode">Filler</span>}{recap === true && <span className={s.recapBadge} title="The episode guide identifies this as a recap episode">Recap</span>}</div>
       <h3>{title}</h3>
       {overview?.trim() && <p>{overview}</p>}
       <small>{date || 'Air date to be announced'}</small>

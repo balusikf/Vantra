@@ -1,0 +1,25 @@
+{
+  "measured_on": "2026-10-24",
+  "unit": "client database API requests per tested interaction",
+  "source": "../audit-2026-10-24-measurements.json",
+  "excludes": [
+    "Auth requests",
+    "server-side requests",
+    "SQL statement counts",
+    "monthly egress and cost"
+  ],
+  "scenarios": [
+    {
+      "name": "Open a series detail",
+      "before": 5,
+      "after": 3,
+      "reduction_percent": 40.0
+    },
+    {
+      "name": "Switch a season",
+      "before": 2,
+      "after": 1,
+      "reduction_percent": 50.0
+    }
+  ]
+}

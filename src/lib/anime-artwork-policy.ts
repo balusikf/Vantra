@@ -3,6 +3,7 @@ export type AnimeArtwork = {
   logo: { file_path: string; width: number; height: number } | null
   source: 'TMDB'
 }
+export const ANIME_EPISODE_PAGE_SIZE = 24
 export type AnimeEpisodePreview = { episode_number: number; name: string; still_path: string | null; air_date: string | null; runtime: number | null; overview: string | null }
 
 export function toAnimeEpisodePreview(episode: Omit<AnimeEpisodePreview, 'runtime' | 'overview'> & { runtime?: number | null; overview?: string | null }): AnimeEpisodePreview {

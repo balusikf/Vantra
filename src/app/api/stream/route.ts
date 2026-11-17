@@ -3,6 +3,7 @@ import { apiJson, authorizeMediaApi } from '@/lib/media-api'
 import { validateMediaParams } from '@/lib/api-policy'
 import { isMediaType, parseInteger } from '@/lib/watch-metadata'
 import { getStreamProviders } from '@/lib/stream-providers'
+import { resolveAnimeStreamProvider } from '@/lib/anime-stream-provider'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -25,6 +26,10 @@ export async function GET(request: NextRequest) {
   }
 
   const urls = getStreamProviders(type, id, seasonNumber, episodeNumber, anilistNumber)
+  if (type === 'anime') {
+    const animeProvider = await resolveAnimeStreamProvider(id, episodeNumber, anilistNumber)
+    if (animeProvider) urls.unshift(animeProvider)
+  }
 
   return apiJson({ providers: urls, primary: urls[0] })
 }

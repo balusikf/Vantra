@@ -22,7 +22,7 @@ export function validateMediaParams(provider: 'tmdb' | 'anilist' | 'stream', par
   }
   const type = params.get('type') || ''
   const types = provider === 'tmdb' ? ['trending', 'popular-movies', 'popular-tv', 'top-rated-movies', 'top-rated-tv', 'search', 'movie-detail', 'tv-detail', 'season-detail', 'movie-reviews', 'tv-reviews','discover','person','collection-detail','collection-world']
-    : provider === 'anilist' ? ['catalog', 'trending', 'popular', 'top-rated', 'detail', 'episodes', 'search', 'reviews'] : ['movie', 'tv', 'anime']
+    : provider === 'anilist' ? ['catalog', 'trending', 'popular', 'top-rated', 'detail', 'episodes', 'episode-guide', 'search', 'reviews'] : ['movie', 'tv', 'anime']
   if (!types.includes(type)) throw new InvalidApiInput('Invalid media request.')
   const filterKeys=['genre','year','score','runtime','released']
   if(filterKeys.some(key=>params.has(key)) && !(provider==='tmdb'&&type==='discover') && !(provider==='anilist'&&type==='catalog'))throw new InvalidApiInput('Filters require a discovery request.')
@@ -53,6 +53,7 @@ export function validateMediaParams(provider: 'tmdb' | 'anilist' | 'stream', par
   if(['collection-detail','collection-world'].includes(type)&&(!params.has('id')||[...params.keys()].some(key=>!['type','id'].includes(key))))throw new InvalidApiInput('Invalid film collection request.')
   if (['reviews', 'movie-reviews', 'tv-reviews'].includes(type) && [...params.keys()].some(key => !['type', 'id'].includes(key))) throw new InvalidApiInput('Invalid review parameter.')
   if (type === 'season-detail' && !params.has('season')) throw new InvalidApiInput('Missing season.')
+  if (type === 'episode-guide' && (!params.has('id') || [...params.keys()].some(key => !['type', 'id', 'page'].includes(key)))) throw new InvalidApiInput('Invalid episode guide request.')
 }
 
 export function createTokenBucket(capacity = 120, windowMs = 60_000, maxKeys = 4096, now = Date.now) {

@@ -1,5 +1,7 @@
 # Anime artwork, 2026-10-22
 
+> Artwork mapping reference from 22 October 2026. Current episode ranges, additional guide metadata and filler labels are described in [Playback and anime](PLAYBACK.md#anime-episode-guides). Validation counts below belong to the historical implementation checks.
+
 Update: anime and TV now render episodes through the same `EpisodeRow` component and existing `.episodeList`/`.episode` styles. The former anime tile grid was removed. Both show a still on the left, episode number, title, actual runtime where known, synopsis where supplied, air date and the same play button/hover. Anime episode previews now preserve `runtime` and `overview` from the already fetched TMDB season, with missing/invalid values left null; no per-episode API requests or invented durations. Anime availability and MAL/AniList playback IDs remain unchanged. Validation: 61 tests, lint and production build passed.
 
 Anime detail pages now use optional TMDB title logos and high-resolution landscape artwork. AniList remains the source of the anime identity, score, synopsis, MAL playback ID and episode availability. A TMDB mapping must never change the player or saved library identity.

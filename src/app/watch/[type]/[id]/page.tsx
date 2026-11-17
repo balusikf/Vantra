@@ -7,13 +7,11 @@ import { useHistory } from '@/hooks/useHistory'
 import { getHistoryLookup, isMediaType } from '@/lib/watch-metadata'
 import { PLAYER_IFRAME_ALLOW } from '@/lib/player-permissions'
 import { fetchMedia } from '@/lib/client-media-cache'
+import type { StreamProvider as Provider } from '@/lib/stream-providers'
+import { ArrowLeft, RefreshCw, TvMinimal } from 'lucide-react'
+import s from '@/components/vantra/playback.module.css'
 
 const playerPageClass = 'relative h-svh w-full overflow-hidden bg-[#09090b]'
-
-interface Provider {
-  name: string
-  url: string
-}
 
 export default function WatchPage() {
   return <Suspense fallback={<main data-player className={playerPageClass} aria-label="Video playback"><p className="p-4 text-zinc-400">Loading...</p></main>}><WatchContent /></Suspense>
@@ -41,15 +39,19 @@ function Playback({ type, id, season, episode, anilistId, onBack }: { type: stri
   const [error, setError] = useState<string | null>(null)
   const [historyError, setHistoryError] = useState(false)
   const [reloadCount, setReloadCount] = useState(0)
+  const [sourceAttempt, setSourceAttempt] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
     const fetchStream = async () => {
+      setLoading(true)
+      setError(null)
+      setHistoryError(false)
       try {
         if (!isMediaType(type)) throw new Error('Invalid media type')
         const query = new URLSearchParams({ id, type, season, episode })
         if (type === 'anime' && anilistId !== null) query.set('anilistId', anilistId)
-        const res = await fetch(`/api/stream?${query}`, { signal: controller.signal })
+        const res = await fetch(`/api/stream?${query}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) })
         if (!res.ok) throw new Error('Could not load sources. Please try again.')
         const data = await res.json()
         if (controller.signal.aborted) return
@@ -77,7 +79,7 @@ function Playback({ type, id, season, episode, anilistId, onBack }: { type: stri
         }
       } catch (err) {
         if (!controller.signal.aborted) {
-          setError(err instanceof Error ? err.message : 'Could not load sources. Please try again.')
+          setError(err instanceof Error && err.message === 'Invalid media type' ? err.message : 'Playback sources are taking a break. Try loading them again in a moment.')
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false)
@@ -85,18 +87,17 @@ function Playback({ type, id, season, episode, anilistId, onBack }: { type: stri
     }
     void fetchStream()
     return () => controller.abort()
-  }, [id, type, season, episode, anilistId, addToHistory])
+  }, [id, type, season, episode, anilistId, addToHistory, sourceAttempt])
 
   return (
     <main data-player className={playerPageClass} aria-label="Video playback">
-      {error && <p role="alert" className="absolute z-2 top-20 left-4 right-4 text-red-400 px-4 py-2 bg-black/80 rounded-lg">{error}</p>}
       {historyError && <p role="status" className="absolute z-2 top-20 left-4 right-4 text-amber-400 px-4 py-2 bg-black/80 rounded-lg">Playback sources loaded, but your history could not be saved.</p>}
       {/* Player */}
       <div className="absolute inset-0">
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-lg">Loading...</div>
-          </div>
+          <div className={s.playerLoading} role="status"><span /><p>Setting the scene<span>Finding your playback sources</span></p></div>
+        ) : error || !activeProvider ? (
+          <div className={s.recoveryScreen}><div className={s.recoveryCard} role="alert"><span className={s.helpSymbol}><TvMinimal size={27}/></span><p className={s.helpEyebrow}>A LITTLE INTERMISSION</p><h1>Let’s try that again<span>.</span></h1><p>{error || 'No playback source was found for this title. Availability can change between sources.'}</p><button className={s.helpPrimary} onClick={() => setSourceAttempt(attempt => attempt + 1)}><RefreshCw size={17}/> Load sources again</button><button className={s.helpSecondary} onClick={onBack}><ArrowLeft size={16}/> Go back</button></div></div>
         ) : activeProvider ? (
           <iframe
             key={`${activeProvider.url}:${reloadCount}`}

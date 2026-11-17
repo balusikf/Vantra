@@ -1,10 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft, Check, RefreshCw, Settings2, X } from 'lucide-react'
+import { ArrowLeft, Check, CircleHelp, RefreshCw, Settings2, X } from 'lucide-react'
 import s from './playback.module.css'
-
-interface Provider { name: string; url: string }
+import type { StreamProvider as Provider } from '@/lib/stream-providers'
+import { nextPlaybackSource } from '@/lib/playback-recovery'
+import PlaybackHelp from './PlaybackHelp'
 
 const sourcesWithAds = new Set(['VidCore', 'VidNest', 'VidFast'])
 
@@ -17,18 +18,20 @@ export default function PlaybackControls({ providers, activeProvider, onProvider
 }) {
   const [visible, setVisible] = useState(true)
   const [sourcesOpen, setSourcesOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const controls = useRef<HTMLDivElement>(null)
   const sourceTrigger = useRef<HTMLButtonElement>(null)
+  const helpTrigger = useRef<HTMLButtonElement>(null)
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const wake = useCallback(() => {
     setVisible(true)
     if (idleTimer.current) clearTimeout(idleTimer.current)
-    if (!sourcesOpen) idleTimer.current = setTimeout(() => {
+    if (!sourcesOpen && !helpOpen) idleTimer.current = setTimeout(() => {
       // Keep keyboard navigation and an actively used control visible.
       if (!controls.current?.matches(':hover') && !controls.current?.querySelector(':focus-visible')) setVisible(false)
     }, 2800)
-  }, [sourcesOpen])
+  }, [sourcesOpen, helpOpen])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -57,16 +60,25 @@ export default function PlaybackControls({ providers, activeProvider, onProvider
 
   return <>
     <button className={s.reveal} aria-label="Show playback controls" tabIndex={visible ? -1 : 0} onPointerEnter={wake} onClick={wake}><span>Show controls</span></button>
-    <div ref={controls} className={s.controls} data-visible={visible || sourcesOpen} onPointerLeave={wake} onFocusCapture={wake}>
+    <div ref={controls} className={s.controls} data-visible={visible || sourcesOpen || helpOpen} onPointerLeave={wake} onFocusCapture={wake}>
       <button className={s.back} onClick={onBack}><ArrowLeft size={18} /><span>Back</span></button>
       <div className={s.sourceControls}>
+        <button ref={helpTrigger} className={s.helpTrigger} aria-label="Playback help" aria-haspopup="dialog" onClick={() => { setSourcesOpen(false); setHelpOpen(true) }}><CircleHelp size={18} /><span>Need a hand?</span></button>
         <button ref={sourceTrigger} className={s.sourceTrigger} aria-label="Playback sources" aria-expanded={sourcesOpen} aria-controls="playback-sources" onClick={() => setSourcesOpen(open => !open)}>{sourcesOpen ? <X size={18} /> : <Settings2 size={18} />}</button>
         {sourcesOpen && <section id="playback-sources" className={s.sourcePanel} aria-label="Playback sources">
           <p>Playback source</p>
-          <div className={s.sourceList}>{providers.length ? providers.map(provider => <button key={provider.name} aria-pressed={activeProvider?.name === provider.name} onClick={() => { onProviderChange(provider); setSourcesOpen(false); sourceTrigger.current?.focus() }}><span>{provider.name}</span><span className={s.sourceIndicators}>{sourcesWithAds.has(provider.name) && <span className={s.adsBadge} title="Contains advertisements"><span aria-hidden="true">ADS</span><span className="sr-only">Contains advertisements</span></span>}{activeProvider?.name === provider.name && <Check size={15} aria-hidden="true" />}</span></button>) : <span>No sources loaded yet.</span>}</div>
+          <div className={s.sourceList}>{providers.length ? providers.map(provider => <button key={provider.name} aria-pressed={activeProvider?.name === provider.name} onClick={() => { onProviderChange(provider); setSourcesOpen(false); sourceTrigger.current?.focus() }}>
+            <span>{provider.name}</span>
+            <span className={s.sourceIndicators}>
+              {provider.tags?.includes('ANIME') && <span className={s.animeBadge} title="Anime source">ANIME</span>}
+              {(sourcesWithAds.has(provider.name) || provider.tags?.includes('ADS')) && <span className={s.adsBadge} title="Contains advertisements"><span aria-hidden="true">ADS</span><span className="sr-only">Contains advertisements</span></span>}
+              {activeProvider?.name === provider.name && <Check size={15} aria-hidden="true" />}
+            </span>
+          </button>) : <span>No sources loaded yet.</span>}</div>
           <button className={s.reload} disabled={!activeProvider} onClick={() => { onReload(); setSourcesOpen(false); sourceTrigger.current?.focus() }}><RefreshCw size={14} /> Reload player</button>
         </section>}
       </div>
     </div>
+    <PlaybackHelp open={helpOpen} active={activeProvider} next={nextPlaybackSource(providers, activeProvider)} onClose={() => { setHelpOpen(false); helpTrigger.current?.focus() }} onNext={() => { const next = nextPlaybackSource(providers, activeProvider); if (next) onProviderChange(next) }} onReload={onReload} />
   </>
 }

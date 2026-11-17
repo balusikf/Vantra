@@ -21,6 +21,8 @@ import FilmCollectionLink from './FilmCollectionLink'
 import sp from './season-picker.module.css'
 import ps from './person.module.css'
 import { useEpisodeTracking } from '@/hooks/useEpisodeTracking'
+import type { AnimeEpisodeGuide } from '@/lib/anime-episode-guide'
+import { ANIME_EPISODE_PAGE_SIZE as GUIDE_PAGE_SIZE } from '@/lib/anime-artwork-policy'
 import t from './library-tracking.module.css'
 import s from './vantra.module.css'
 
@@ -73,7 +75,11 @@ function AnimeEpisodes({ anime }: { anime: AniListMedia }) {
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
   const [retry, setRetry] = useState(0)
-  const [visible, setVisible] = useState(24)
+  const [episodePage, setEpisodePage] = useState(1)
+  const [guideResult, setGuideResult] = useState<{ page: number; data: AnimeEpisodeGuide | null } | null>(null)
+  const guideLoading = guideResult?.page !== episodePage
+  const guide = guideResult?.page === episodePage ? guideResult.data : null
+  const visible = episodePage * GUIDE_PAGE_SIZE
   const [now] = useState(() => Date.now())
   const tracking = useEpisodeTracking({ id:anime.id, kind:'anime', season:0, maxEpisode:visible, title:anime.title.english || anime.title.romaji, poster:anime.coverImage.extraLarge || anime.coverImage.large })
   useEffect(() => {
@@ -89,16 +95,28 @@ function AnimeEpisodes({ anime }: { anime: AniListMedia }) {
     void fetchEpisodes()
     return () => controller.abort()
   }, [anime.id, retry])
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchMedia<AnimeEpisodeGuide>(`/api/anilist?type=episode-guide&id=${anime.id}&page=${episodePage}`, controller.signal)
+      .then(result => { if (!controller.signal.aborted) setGuideResult({ page: episodePage, data: result }) })
+      .catch(() => { if (!controller.signal.aborted) setGuideResult({ page: episodePage, data: null }) })
+    return () => controller.abort()
+  }, [anime.id, episodePage])
   const count = data?.episodes || anime.episodes || (data?.nextAiringEpisode ? Math.max(0, data.nextAiringEpisode.episode - 1) : 0)
-  return <section id="episodes" className={s.detailSection}><div className={`${s.episodeHeading} ${sp.heading}`}><div><p className={s.eyebrow}>SETTLE IN</p><h2>Episodes<span>.</span></h2></div>{!loading && count > 0 && <span className={s.episodeCount}>{count} episodes</span>}</div>{loading ? <div className={s.episodeSkeleton} aria-busy="true">Loading episodes…</div> : failed ? <ErrorPanel message="Episode information is temporarily unavailable." retry={() => setRetry(value => value + 1)} /> : !count ? <p className={s.muted}>Episode information hasn’t been announced yet.</p> : <><div className={s.episodeList}>{Array.from({ length: Math.min(count, visible) }, (_, index) => {
-    const episode = index + 1
+  const pageCount = Math.ceil(count / GUIDE_PAGE_SIZE)
+  const start = (episodePage - 1) * GUIDE_PAGE_SIZE
+  return <section id="episodes" className={s.detailSection}><div className={`${s.episodeHeading} ${sp.heading}`}><div><p className={s.eyebrow}>SETTLE IN</p><h2>Episodes<span>.</span></h2></div>{!loading && count > 0 && <span className={s.episodeCount}>{count} episodes</span>}</div>{loading ? <div className={s.episodeSkeleton} aria-busy="true">Loading episodes…</div> : failed ? <ErrorPanel message="Episode information is temporarily unavailable." retry={() => setRetry(value => value + 1)} /> : !count ? <p className={s.muted}>Episode information hasn’t been announced yet.</p> : <>
+    <div className={s.episodeGuideBar}><p aria-live="polite">{guideLoading ? 'Loading episode guide…' : guide?.available ? <>Filler and recap labels from <a href={guide.sourceUrl!} target="_blank" rel="noopener noreferrer">Re:ANIME <ArrowUpRight size={11}/></a>. Unlabelled episodes aren’t a canon guarantee.</> : 'Filler information is unavailable for these episodes. You can still watch normally.'}</p>{pageCount > 1 && <label>Episode range<select aria-label="Episode range" value={episodePage} disabled={tracking.busy !== null} onChange={event => setEpisodePage(Number(event.target.value))}>{Array.from({ length: pageCount }, (_, index) => <option key={index} value={index + 1}>{index * GUIDE_PAGE_SIZE + 1}–{Math.min(count, (index + 1) * GUIDE_PAGE_SIZE)}</option>)}</select></label>}</div>
+    <div className={s.episodeList}>{Array.from({ length: Math.max(0, Math.min(count - start, GUIDE_PAGE_SIZE)) }, (_, index) => {
+    const episode = start + index + 1
     const schedule = data?.airingSchedule?.nodes?.find(node => node.episode === episode)
     const available = Boolean(anime.idMal) && (schedule ? schedule.airingAt * 1000 <= now : data?.nextAiringEpisode ? episode < data.nextAiringEpisode.episode : anime.status === 'FINISHED')
     const preview = data?.previews?.find(item => item.episode_number === episode)
-    const title = preview?.name || `Episode ${String(episode).padStart(2, '0')}`
-    const airDate = preview?.air_date || (schedule ? new Date(schedule.airingAt * 1000).toISOString().slice(0, 10) : null)
-    return <EpisodeRow key={episode} number={episode} title={title} overview={preview?.overview} runtime={preview?.runtime} date={airDate ? dateLabel(airDate) : null} still={image(preview?.still_path, 'w780')} fallback={anime.artwork?.backdrop ? image(anime.artwork.backdrop, 'w780') : anime.coverImage.extraLarge || anime.coverImage.large} available={available} href={`/watch/anime/${anime.idMal}?episode=${episode}&anilistId=${anime.id}`} playLabel={`Play episode ${episode}: ${title}`} watched={tracking.seen.has(episode)} trackingDisabled={tracking.loading || tracking.busy !== null || !!tracking.error} onWatchedChange={()=>{void tracking.toggle(episode)}} />
-  })}</div>{visible < count && <button className={s.secondary} disabled={tracking.busy !== null} onClick={() => setVisible(value => value + 24)}>Show more episodes</button>}</>}{tracking.error ? <p className={t.error} role="alert">{tracking.error} <button className={s.explore} onClick={tracking.retry}>Try again</button></p> : <p className={t.trackingNotice}>Use the eye button to mark an episode watched. Your choices stay private in your library.</p>}</section>
+    const extra = guide?.episodes.find(item => item.number === episode)
+    const title = preview?.name || extra?.title || `Episode ${String(episode).padStart(2, '0')}`
+    const airDate = preview?.air_date || extra?.date || (schedule ? new Date(schedule.airingAt * 1000).toISOString().slice(0, 10) : null)
+    return <EpisodeRow key={episode} number={episode} title={title} overview={preview?.overview || extra?.overview} runtime={preview?.runtime || extra?.runtime} date={airDate ? dateLabel(airDate) : null} still={image(preview?.still_path || extra?.still, 'w780')} fallback={anime.artwork?.backdrop ? image(anime.artwork.backdrop, 'w780') : anime.coverImage.extraLarge || anime.coverImage.large} filler={extra?.filler} recap={extra?.recap} available={available} href={`/watch/anime/${anime.idMal}?episode=${episode}&anilistId=${anime.id}`} playLabel={`Play episode ${episode}: ${title}`} watched={tracking.seen.has(episode)} trackingDisabled={tracking.loading || tracking.busy !== null || !!tracking.error} onWatchedChange={()=>{void tracking.toggle(episode)}} />
+  })}</div>{pageCount > 1 && <div className={s.episodePagination}><button className={s.secondary} disabled={episodePage === 1 || tracking.busy !== null} onClick={() => setEpisodePage(page => page - 1)}>Previous episodes</button><span>{start + 1}–{Math.min(count, visible)} of {count}</span><button className={s.secondary} disabled={episodePage === pageCount || tracking.busy !== null} onClick={() => setEpisodePage(page => page + 1)}>Next episodes</button></div>}</>}{tracking.error ? <p className={t.error} role="alert">{tracking.error} <button className={s.explore} onClick={tracking.retry}>Try again</button></p> : <p className={t.trackingNotice}>Use the eye button to mark an episode watched. Your choices stay private in your library.</p>}</section>
 }
 
 function Gallery({ paths, title }: { paths: string[]; title: string }) {
@@ -114,6 +132,7 @@ export default function TitleDetail({ kind, id }: { kind: Kind; id: number }) {
   const [retry, setRetry] = useState(0)
   const [season, setSeason] = useState<number | null>(null)
   const [failedLogo, setFailedLogo] = useState(false)
+  const [expandedSynopsis, setExpandedSynopsis] = useState(false)
   useEffect(() => {
     const controller = new AbortController()
     async function fetchDetail() {
@@ -168,7 +187,7 @@ export default function TitleDetail({ kind, id }: { kind: Kind; id: number }) {
       <div className={s.heroButtons}>{canPlay ? <Link prefetch={false} href={playHref} className={s.primary}><Play size={17} fill="currentColor" />{show ? `Watch S${selectedSeason} · E1` : anime ? 'Watch episode 1' : 'Watch now'}</Link> : <span className={`${s.secondary} ${s.unavailable}`}><Clock size={16} />{anime && !anime.idMal ? 'Playback unavailable' : 'Coming soon'}</span>}<WatchlistButton tmdbId={id} mediaType={kind} title={name} posterPath={anime ? anime.coverImage.large : tmdb?.poster_path || ''} className={s.secondary} />{trailer && <a href="#trailer" className={s.trailerLink}><Play size={15} /> Trailer</a>}</div>
     </div></section>
     <div className={s.detailContent}>{movie && <FilmCollectionLink value={movie.belongs_to_collection} />}<nav className={s.detailTabs} aria-label="Title sections"><a href="#overview">Overview</a>{(show || anime) && <a href="#episodes">Episodes</a>}{trailer && <a href="#trailer">Trailer</a>}{cast.length > 0 && <a href="#cast">Cast</a>}{backdrops.length > 0 && <a href="#gallery">Gallery</a>}</nav>
-      <div className={s.overviewGrid}><section id="overview" className={s.detailSection}><p className={s.eyebrow}>THE STORY</p><h2>{storyHeading}{!/[.!?…]$/.test(storyHeading) && <span>.</span>}</h2><p className={s.fullDescription}>{description}</p><div className={s.genreChips}>{genres.map(genre => <span key={genre}>{genre}</span>)}</div><NookReviews key={`${kind}:${id}`} kind={kind} id={id} genres={genres} /></section>{trailer ? <Trailer id={trailer} backdrop={backdrop || poster} title={name} /> : <section className={s.detailSection}><p className={s.eyebrow}>IN FOCUS</p><h2>About this title<span>.</span></h2><p className={s.muted}>Every story starts somewhere. Explore the details below.</p></section>}</div>
+      <div className={s.overviewGrid}><section id="overview" className={s.detailSection}><p className={s.eyebrow}>THE STORY</p><h2>{storyHeading}{!/[.!?…]$/.test(storyHeading) && <span>.</span>}</h2><p id="title-synopsis" className={`${s.fullDescription} ${description.length > 600 && !expandedSynopsis ? s.collapsedSynopsis : ''}`}>{description}</p>{description.length > 600 && <button className={s.synopsisToggle} aria-expanded={expandedSynopsis} aria-controls="title-synopsis" onClick={() => setExpandedSynopsis(expanded => !expanded)}>{expandedSynopsis ? 'Show less' : 'Read full synopsis'}<ChevronRight size={13} data-expanded={expandedSynopsis}/></button>}<div className={s.genreChips}>{genres.map(genre => <span key={genre}>{genre}</span>)}</div><NookReviews key={`${kind}:${id}`} kind={kind} id={id} genres={genres} /></section>{trailer ? <Trailer id={trailer} backdrop={backdrop || poster} title={name} /> : <section className={s.detailSection}><p className={s.eyebrow}>IN FOCUS</p><h2>About this title<span>.</span></h2><p className={s.muted}>Every story starts somewhere. Explore the details below.</p></section>}</div>
       <div className={s.titleFacts}>{poster && <div className={s.factPoster}><Image src={poster} alt={`${name} poster`} fill sizes="100px" className={s.cardImage} /></div>}<dl>{year && <div><dt>Released</dt><dd>{release ? dateLabel(release) : year}</dd></div>}{runtime && <div><dt>Runtime</dt><dd>{runtime}</dd></div>}{data.status && <div><dt>Status</dt><dd>{data.status.replaceAll('_', ' ').toLowerCase()}</dd></div>}{movie && movie.budget > 0 && <div><dt>Budget</dt><dd>{money(movie.budget)}</dd></div>}{movie && movie.revenue > 0 && <div><dt>Box office</dt><dd>{money(movie.revenue)}</dd></div>}{show?.networks?.length ? <div><dt>Network</dt><dd>{show.networks.map(network => network.name).join(', ')}</dd></div> : null}{anime?.studios?.nodes?.length ? <div><dt>Studio</dt><dd>{anime.studios.nodes.map(studio => studio.name).join(', ')}</dd></div> : null}{anime?.episodes && <div><dt>Episodes</dt><dd>{anime.episodes}</dd></div>}<div><dt>Collection</dt><dd><Bookmark size={13} /> {kind === 'anime' ? 'Anime' : kind === 'tv' ? 'Series' : 'Movies'}</dd></div></dl></div>
       {show && seasons.length > 0 && <Episodes id={id} season={selectedSeason} seasons={seasons} onSeason={setSeason} title={name} poster={show.poster_path || ''} />}{anime && <AnimeEpisodes anime={anime} />}
       {cast.length > 0 && <section id="cast" className={s.detailSection}><p className={s.eyebrow}>THE PEOPLE BEHIND THE STORY</p><h2>Meet the cast<span>.</span></h2><div className={s.cast}>{cast.map(actor => <Link className={ps.personLink} href={`/person/${actor.id}`} key={actor.id}><div className={s.actorPhoto}>{actor.profile_path ? <Image src={image(actor.profile_path, 'w185')!} alt="" fill sizes="100px" className={s.cardImage} /> : <span>{actor.name[0]}</span>}</div><h3>{actor.name}</h3><p>{actor.character}</p></Link>)}</div></section>}

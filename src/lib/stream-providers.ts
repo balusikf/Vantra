@@ -1,6 +1,10 @@
 import type { MediaType } from './watch-metadata'
 
-export interface StreamProvider { name: string; url: string }
+export interface StreamProvider {
+  name: string
+  url: string
+  tags?: ('ADS' | 'ANIME')[]
+}
 type EmbedBuilder = (id: number, season: number, episode: number) => string
 interface ProviderDefinition {
   name: string

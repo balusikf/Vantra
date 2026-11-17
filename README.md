@@ -1,56 +1,71 @@
-# VANTRA
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/vantra-wordmark-dark.svg">
+    <img src="docs/assets/vantra-wordmark-light.svg" alt="VANTRA" width="360" height="74">
+  </picture>
+</p>
 
-A private web application for discovering movies, series and anime, managing a personal library, and tracking viewing progress.
+<p align="center"><strong>Good stories live here.</strong></p>
 
-Built with Next.js, React and Supabase, VANTRA combines catalogue metadata, personal recommendations and playback through external embedded sources. It is a non-commercial project in active development, with access restricted to approved accounts.
+<p align="center">
+  A personal home for movies, series and anime.<br>
+  Discover a story, keep it in your library and find your next episode.
+</p>
 
-![VANTRA title detail page featuring Cyberpunk: Edgerunners](docs/screenshots/title-detail.jpg)
+<p align="center">
+  <a href="docs/GETTING-STARTED.md">Get started</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/ROADMAP.md">Roadmap</a>
+</p>
 
-## Features
+<p align="center"><sub>Next.js 16 · React 19 · TypeScript · Supabase</sub></p>
 
-- **Discovery:** searchable movie, series and anime catalogues with filters, trailers, cast profiles and episode information. Lists load 18 titles at a time.
-- **Personal library:** watching statuses, custom collections, private ratings and notes kept separate from catalogue scores.
-- **Episode tracking:** manual watched marks for individual episodes or released seasons, with season counts and undo for bulk marks.
-- **Continue watching:** up to three titles based on watched marks or the last episode opened. Caught-up titles and future episodes are excluded.
-- **Recommendations:** suggestions based on library activity, with saved and previously opened titles filtered out.
-- **Film collections:** release-order lists with private watched progress and verified links between selected connected film worlds.
-- **Nook:** an animated companion that selects titles from the planned list or a broader discovery catalogue, presents community reviews, and supports optional accessories. It remains hidden during playback.
-- **Account tools:** profile and avatar settings, private library statistics, and an owner-only database and file-storage capacity panel.
-- **Responsive interface:** a shared visual theme, animated navigation and search, and reduced-motion support.
+![VANTRA title detail featuring Cyberpunk: Edgerunners](docs/screenshots/title-detail.jpg)
 
-## How it works
+VANTRA is a non-commercial web application in active development, with access intended for approved accounts. It combines public catalogue metadata, a private viewing library and playback through external embedded sources.
 
-TMDB supplies movie and series metadata, artwork and cast information. AniList provides anime metadata through GraphQL. Server routes validate requests, keep the TMDB API key private, and use bounded metadata caches, shared in-flight requests and upstream cooldowns.
+## The experience
 
-Supabase handles authentication, PostgreSQL data and avatar storage. Access is restricted to approved accounts through an email whitelist. Row Level Security limits profiles, saved titles, history, reviews, collections and watched marks to their owner.
+| Area | What you can do |
+| --- | --- |
+| Discover | Browse movies, series and anime, refine searches, explore cast profiles and connected film collections |
+| Keep a library | Organise statuses and collections; save private ratings and notes separately from official scores |
+| Follow a story | Mark episodes or released seasons watched; see up to three eligible titles in Continue watching |
+| Find something new | Explore personal recommendations or ask Nook to choose from your planned list or the wider catalogue |
+| Make it yours | Set a profile and avatar, customise Nook and explore private library statistics |
+| Watch with context | Choose an external source, use playback recovery and view available anime episode details and filler labels |
 
-Personal data stays outside the shared catalogue cache. Account verification, ownership filters and database policies protect private operations.
+Catalogues load 18 titles per page. The interface shares one visual theme, original title artwork, keyboard controls and reduced-motion support. [Explore the gallery](docs/GALLERY.md).
 
-## Playback and limitations
+## Database efficiency
 
-Playback uses external providers embedded in iframes. VANTRA does not host or upload video files. Availability, video controls, subtitles, quality settings and playback positions depend on the selected source.
+The recorded TV-detail comparison reduced **client database requests from 5 to 3**, a **40% reduction**. Changing seasons went from **2 requests to 1**.
 
-Some sources display advertisements or open popups, including sources without an `ADS` badge. An updated browser and a reputable content blocker are recommended. These measures reduce unwanted content but do not guarantee safety or availability.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/database-requests-dark.png">
+  <img src="docs/assets/database-requests-light.png" alt="Measured client database requests: series detail 5 to 3, down 40%; season change 2 to 1, down 50%." width="100%">
+</picture>
 
-Watch history records titles and episodes opened, not confirmed completion. Episode progress relies on manual marks. An equivalent title stored separately in TMDB and AniList is not automatically matched across both catalogues.
+Measured on 24 October 2026 in two controlled interactions. These are request counts, not a claim about monthly billing, database CPU or overall page speed. [Method, raw evidence and limits](docs/PERFORMANCE.md).
 
-The owner capacity panel measures current database and stored-file sizes. Monthly traffic, active users and other billing totals remain in the Supabase dashboard.
+## How it fits together
 
-## Tech stack
+```mermaid
+flowchart LR
+    UI["VANTRA interface"] --> API["Next.js route handlers"]
+    UI -->|"Private library operations"| DB["Supabase Auth, PostgreSQL and RLS"]
+    API --> DB
+    API --> META["Cached catalogue metadata"]
+    META --> DATA["TMDB and AniList"]
+    UI --> VIDEO["External iframe players"]
+```
 
-| Technology | Role |
-|---|---|
-| Next.js 16 and React 19 | App Router, server routes and interface |
-| TypeScript | Application types and request validation |
-| CSS Modules and Tailwind CSS 4 | Shared theme and responsive styling |
-| Framer Motion | Interface transitions and animations |
-| Supabase | Authentication, PostgreSQL, RLS and avatar storage |
-| TMDB | Movie, series, artwork and people data |
-| AniList | Anime metadata and community recommendations |
+Supabase stores personal account data and avatars. Catalogue metadata uses separate bounded caches; video files are served externally. Private notes, library entries and sessions stay outside shared catalogue caches. [Architecture and data model](docs/ARCHITECTURE.md).
 
 ## Run locally
 
-Use Node.js 24 and npm. The test suite uses Node's native TypeScript support.
+Use Node.js 24 and npm. A prepared Supabase schema and an approved account are required; the SQL references are not a fresh-project installer.
 
 ```sh
 git clone https://github.com/balusikf/Vantra.git
@@ -59,56 +74,36 @@ npm ci
 cp .env.example .env.local
 ```
 
-Fill in `.env.local`:
-
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public publishable key or legacy anon key |
-| `TMDB_API_KEY` | Server-side TMDB API key |
-| `VANTRA_OWNER_USER_ID` | Optional server-only UUID for the capacity panel; must match its database authorization |
-
-Keep `.env.local` private. A Supabase service-role or secret key must never be placed in a `NEXT_PUBLIC_` variable.
-
-The app requires a prepared Supabase project with VANTRA's tables, RLS policies, functions, approved accounts and avatar bucket. The files in [docs/sql](docs/sql) record changes already applied to the existing project. They are deployment references, not a fresh-project installer. Review their notes before using them on another database.
+Fill in your own environment values using the [setup guide](docs/GETTING-STARTED.md), then run:
 
 ```sh
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000) and sign in with an approved account. Restart the server after changing environment variables.
+Open [localhost:3000](http://localhost:3000). Keep `.env.local` private.
 
-For a local production build:
+## Playback and limits
 
-```sh
-npm run build
-npm start
-```
+Sources are embedded through iframes. Availability, quality, audio, subtitles and playback positions depend on the selected source. Some sources contain advertisements or popups. An updated browser and a reputable content blocker are recommended; they do not guarantee safety.
 
-## Validation
-
-```sh
-npm test
-npm run lint
-npm run build
-```
+Opening a player records the last title or episode opened, not confirmed completion. Watched progress uses explicit marks. The owner capacity panel measures current database and file sizes; monthly billing totals remain in the Supabase dashboard. [Playback details](docs/PLAYBACK.md).
 
 ## Documentation
 
-- [Personal recommendations and end-to-end checks](docs/FOR-YOU.md)
-- [Continue watching and its limits](docs/CONTINUE-WATCHING.md)
-- [Library tracking and collections](docs/LIBRARY-TRACKING.md)
-- [Film collections and release order](docs/FILM-COLLECTIONS.md)
-- [Nook and its appearance](docs/NOOK.md)
-- [Automatic owner capacity panel](docs/OWNER-USAGE-PANEL.md)
-- [Code audit and regression fixes](docs/CODE-AUDIT-2026-10-25.md)
-- [Responsive layout review](docs/MOBILE-REVIEW-2026-10-25.md)
-- [Embedded-player security](docs/PLAYER-SECURITY.md)
+| Topic | Guide |
+| --- | --- |
+| Setup and commands | [Getting started](docs/GETTING-STARTED.md) |
+| Structure and privacy | [Architecture](docs/ARCHITECTURE.md) · [Security](docs/SECURITY.md) |
+| Efficiency and evidence | [Performance](docs/PERFORMANCE.md) |
+| Library and discovery | [Product guides](docs/README.md#product-guides) |
+| Playback and anime | [Player help, subtitles and episode guides](docs/PLAYBACK.md) |
+| Design direction | [Gallery](docs/GALLERY.md) · [Roadmap](docs/ROADMAP.md) |
+| Historical checks | [Audit records and SQL references](docs/README.md#evidence-and-historical-records) |
+
+For development checks, run `npm test`, `npm run lint` and `npm run build`. Validation snapshots and known dependency findings are documented in the [security guide](docs/SECURITY.md).
 
 ## Credits
 
-Developed with assistance from [Claude](https://claude.ai) and Codex.
+Movie and series metadata and artwork: [TMDB](https://www.themoviedb.org/). Anime catalogue data: [AniList](https://anilist.co/). Additional episode-guide attribution appears in the interface where available.
 
-- Movie and series data and artwork: [TMDB](https://www.themoviedb.org/).
-- Anime data: [AniList](https://anilist.co/).
-- Nook is adapted from [bloub by Jérémy Perret](https://github.com/jeremy-prt/bloub). Its [MIT license](src/vendor/bloub/LICENSE) is retained with the vendored code.
+Nook is adapted from [bloub by Jérémy Perret](https://github.com/jeremy-prt/bloub); its [MIT license](src/vendor/bloub/LICENSE) is retained. Developed with assistance from Claude and Codex.
